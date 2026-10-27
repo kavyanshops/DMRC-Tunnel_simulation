@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sadar Bazar Tunnel Training Simulator | Delhi Metro Phase IV</title>
+  <meta name="description" content="Interactive 3D training prototype of the underground Sadar Bazar metro station and stacked tunnels for Delhi Metro Phase IV worker familiarization.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/src/index.css">
+</head>
+<body>
+  <!-- Permanent Safety Disclaimer Banner -->
+  <aside id="permanent-banner" role="banner" aria-label="Prototype Disclaimer">
+    <span class="badge-icon" aria-hidden="true">!</span>
+    <span>Training prototype — not approved for operational decisions.</span>
+  </aside>
+
+  <div id="app">
+    <!-- Top Navigation Bar -->
+    <header id="top-nav">
+      <div class="brand-group" id="nav-brand" role="button" tabindex="0">
+        <span class="brand-badge">DMRC IV</span>
+        <span class="brand-title">Sadar Bazar Station & Tunnel Simulator</span>
+      </div>
+      <nav class="nav-links" aria-label="Main Navigation">
+        <button class="nav-btn active" id="btn-nav-home">Portal Home</button>
+        <button class="nav-btn" id="btn-nav-overview">3D Overview (M1)</button>
+        <button class="nav-btn" id="btn-nav-library">Component Library</button>
+        <button class="nav-btn" id="btn-nav-fire">Fire Simulation</button>
+        <button class="nav-btn" id="btn-nav-flood">Flooding Simulation</button>
+      </nav>
+    </header>
+
+    <!-- 3D Canvas Viewport -->
+    <main id="viewport-container">
+      <canvas id="three-canvas"></canvas>
+    </main>
+
+    <!-- HUD Overlay for 3D Viewport -->
+    <div class="hud-layer" id="hud-overlay" style="display: none;">
+      <!-- Level & Depth Info Badge -->
+      <section class="hud-panel" id="hud-level-info" aria-label="Station Depth Telemetry">
+        <div class="hud-level-title" id="hud-active-level">Station Box Cutaway</div>
+        <div class="hud-depth-display">
+          <span>Depth:</span>
+          <strong id="hud-depth-val">0.00 m</strong>
+          <span class="hud-rl-tag" id="hud-rl-val">(RL +220.00 m)</span>
+        </div>
+      </section>
+
+      <!-- Layer Controls & Soil Cutaway Slider -->
+      <aside class="hud-panel" id="hud-layer-controls" aria-label="Layer Toggles">
+        <div class="panel-header">
+          <span>Model Layers</span>
+          <span style="font-size: 0.72rem; color: var(--accent-cyan);">M1 Scaled</span>
+        </div>
+
+        <!-- Soil Removal Cutaway Slider -->
+        <div class="slider-group">
+          <div class="slider-label">
+            <span>Soil Excavation / Cutaway</span>
+            <span id="cutaway-val">100%</span>
+          </div>
+          <input type="range" id="slider-cutaway" class="custom-range" min="0" max="100" value="100">
+        </div>
+
+        <!-- Layer Toggles -->
+        <div class="layer-toggles">
+          <label class="toggle-item">
+            <span>Geological Strata (Soil)</span>
+            <input type="checkbox" id="toggle-ground" checked>
+          </label>
+          <label class="toggle-item">
+            <span>Station Box & Slabs (5 Floors)</span>
+            <input type="checkbox" id="toggle-station" checked>
+          </label>
+          <label class="toggle-item">
+            <span>Stacked TBM Running Tunnels</span>
+            <input type="checkbox" id="toggle-tunnels" checked>
+          </label>
+          <label class="toggle-item">
+            <span>NATM Cross-Passage (Assumed)</span>
+            <input type="checkbox" id="toggle-crosspassage" checked>
+          </label>
+          <label class="toggle-item">
+            <span>Heritage Brick Sewer (~10m)</span>
+            <input type="checkbox" id="toggle-sewer" checked>
+          </label>
+          <label class="toggle-item">
+            <span>Surface Context & Heritage Bldgs</span>
+            <input type="checkbox" id="toggle-surface" checked>
+          </label>
+          <label class="toggle-item">
+            <span>Show [ASSUMED] Tags</span>
+            <input type="checkbox" id="toggle-assumed-tags" checked>
+          </label>
+        </div>
+      </aside>
+
+      <!-- Bottom Navigation Hints -->
+      <footer class="hud-panel" id="hud-bottom-bar">
+        <div class="key-hint"><span class="kbd">Left Click + Drag</span> Rotate</div>
+        <div class="key-hint"><span class="kbd">Right Click + Drag</span> Pan</div>
+        <div class="key-hint"><span class="kbd">Scroll</span> Zoom</div>
+        <div class="key-hint"><span class="kbd">Cutaway Slider</span> Peel Soil Layers</div>
+      </footer>
+    </div>
+
+    <!-- Cinematic Hero Section (Inspired by scene_7.mp4) -->
+    <section id="home-hero" aria-label="Portal Landing">
+      <div class="hero-bg-container" id="hero-bg-container">
+        <video class="hero-video-layer" id="hero-video" src="/scene_7.mp4" autoplay loop muted playsinline></video>
+        <div class="hero-atmospheric-vignette"></div>
+        <div class="hero-portal-ray" id="hero-portal-ray"></div>
+      </div>
+
+      <div class="hero-content" id="hero-content-layer">
+        <div class="hero-eyebrow">DELHI METRO · VIRTUAL TRAINING</div>
+        <h1 class="hero-headline">BEYOND THE SURFACE.</h1>
+        <p class="hero-subtext">
+          An interactive, high-fidelity 3D prototype of the Sadar Bazar underground MRTS station and stacked tunnel complex for worker training and spatial familiarization.
+        </p>
+        <div class="hero-actions">
+          <button class="btn-primary" id="btn-hero-enter">
+            <span>ENTER 3D MODEL</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+          <button class="btn-secondary" id="btn-hero-library">
+            <span>EXPLORE CODEX</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Four PRD Mode Tiles -->
+      <nav class="hero-tiles-grid" aria-label="Training Experiences">
+        <article class="hero-tile" id="tile-explore" role="button" tabindex="0">
+          <div class="tile-icon">🏛️</div>
+          <h2 class="tile-title">Explore 3D Model</h2>
+          <p class="tile-desc">Inspect the 13.4m cut-and-cover box, 5 floor slabs, stacked running tunnels and soil cutaway.</p>
+        </article>
+
+        <article class="hero-tile" id="tile-library" role="button" tabindex="0">
+          <div class="tile-icon">📑</div>
+          <h2 class="tile-title">Component Library</h2>
+          <p class="tile-desc">Searchable engineering codex with verified dimensions, source citations and ASSUMED status badges.</p>
+        </article>
+
+        <article class="hero-tile" id="tile-fire" role="button" tabindex="0">
+          <div class="tile-icon">🔥</div>
+          <h2 class="tile-title">Fire Simulation</h2>
+          <p class="tile-desc">Deterministic bird's-eye scenario tracking smoke dispersion, ventilation status and zone alerts.</p>
+        </article>
+
+        <article class="hero-tile" id="tile-flood" role="button" tabindex="0">
+          <div class="tile-icon">💧</div>
+          <h2 class="tile-title">Flooding Simulation</h2>
+          <p class="tile-desc">Bird's-eye water ingress model tracking simulated groundwater seepage, sump telemetry and egress routes.</p>
+        </article>
+      </nav>
+    </section>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
