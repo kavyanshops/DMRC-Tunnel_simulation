@@ -1,16 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  /* Color Palette - Cinematic Underground / scene_7.mp4 inspired */
-  --bg-primary: #05070a;
-  --bg-secondary: #0b0f15;
-  --bg-surface: rgba(13, 19, 27, 0.75);
-  --bg-surface-elevated: rgba(18, 26, 38, 0.85);
-  --bg-card: rgba(15, 23, 32, 0.6);
-  --bg-glass: rgba(10, 15, 22, 0.7);
+  /* Color Palette - Cinematic Underground Architectural */
+  --bg-primary: #040609;
+  --bg-secondary: #080d14;
+  --bg-surface: rgba(10, 16, 24, 0.72);
+  --bg-surface-elevated: rgba(15, 23, 34, 0.82);
+  --bg-card: rgba(12, 18, 28, 0.55);
+  --bg-card-hover: rgba(18, 28, 42, 0.75);
   
   --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-highlight: rgba(72, 178, 209, 0.3);
+  --border-card: rgba(255, 255, 255, 0.1);
+  --border-highlight: rgba(56, 189, 248, 0.4);
   --border-focus: #38bdf8;
   
   --text-primary: #f8fafc;
@@ -23,8 +24,9 @@
   --accent-amber: #f59e0b;
   --accent-rose: #f43f5e;
   
-  --portal-glow: rgba(220, 245, 255, 0.18);
-  --shadow-cinematic: 0 20px 40px -15px rgba(0, 0, 0, 0.9);
+  --shadow-cinematic: 0 20px 40px -15px rgba(0, 0, 0, 0.85);
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+  --shadow-card-hover: 0 20px 40px -10px rgba(56, 189, 248, 0.15), 0 0 25px rgba(0, 0, 0, 0.8);
   
   /* Fonts */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -61,10 +63,10 @@ html, body {
   left: 0;
   width: 100%;
   height: var(--banner-height);
-  background: linear-gradient(90deg, #1e1302 0%, #2e1d05 50%, #1e1302 100%);
-  border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+  background: linear-gradient(90deg, #180f02 0%, #2e1d05 50%, #180f02 100%);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.35);
   color: #fbbf24;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -97,7 +99,7 @@ html, body {
   padding-top: var(--banner-height);
 }
 
-/* 3D Canvas Container */
+/* 3D Canvas Viewport (Behind UI, full window) */
 #viewport-container {
   position: absolute;
   top: var(--banner-height);
@@ -105,7 +107,7 @@ html, body {
   width: 100%;
   height: calc(100% - var(--banner-height));
   z-index: 1;
-  background: radial-gradient(circle at 50% 50%, #0d131c 0%, #05070a 100%);
+  background: #040609;
 }
 
 #three-canvas {
@@ -124,10 +126,11 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px;
-  background: linear-gradient(180deg, rgba(5, 7, 10, 0.85) 0%, rgba(5, 7, 10, 0) 100%);
+  padding: 0 32px;
+  background: linear-gradient(180deg, rgba(4, 6, 9, 0.95) 0%, rgba(4, 6, 9, 0.4) 75%, rgba(4, 6, 9, 0) 100%);
   z-index: 100;
   pointer-events: none;
+  gap: 16px;
 }
 
 #top-nav * {
@@ -139,16 +142,18 @@ html, body {
   align-items: center;
   gap: 12px;
   cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .brand-badge {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   letter-spacing: 0.15em;
-  padding: 4px 8px;
-  background: rgba(56, 189, 248, 0.15);
-  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 4px 10px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
   border-radius: 4px;
   color: #7dd3fc;
 }
@@ -157,19 +162,22 @@ html, body {
   font-family: var(--font-display);
   font-size: 0.95rem;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(11, 15, 21, 0.65);
-  backdrop-filter: blur(12px);
-  padding: 5px 6px;
+  gap: 6px;
+  background: rgba(10, 16, 24, 0.75);
+  backdrop-filter: blur(14px);
+  padding: 4px 6px;
   border-radius: 8px;
   border: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  flex-wrap: nowrap;
 }
 
 .nav-btn {
@@ -177,20 +185,21 @@ html, body {
   border: 1px solid transparent;
   color: var(--text-secondary);
   font-family: var(--font-sans);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  padding: 7px 14px;
+  padding: 6px 13px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .nav-btn:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .nav-btn.active {
@@ -199,21 +208,27 @@ html, body {
   border-color: rgba(56, 189, 248, 0.3);
 }
 
-/* Cinematic Home / Landing Overlay (scene_7.mp4 inspired) */
+/* Cinematic Home / Landing Overlay (Translucent over Real 3D Tunnel Canvas) */
 #home-hero {
   position: absolute;
-  top: var(--banner-height);
+  top: 0;
   left: 0;
   width: 100%;
-  height: calc(100% - var(--banner-height));
+  height: 100%;
   z-index: 50;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 100px 60px 48px;
-  background-color: var(--bg-primary);
+  padding: calc(var(--banner-height) + var(--header-height) + 16px) 48px 32px;
+  background: transparent;
   transition: opacity 0.5s ease, visibility 0.5s ease;
+  pointer-events: none;
+}
+
+#home-hero * {
+  pointer-events: auto;
 }
 
 #home-hero.hidden {
@@ -222,58 +237,34 @@ html, body {
   pointer-events: none;
 }
 
-/* Background layers for mouse parallax */
-.hero-bg-container {
-  position: absolute;
-  top: -5%;
-  left: -5%;
-  width: 110%;
-  height: 110%;
-  pointer-events: none;
-  z-index: 1;
-  overflow: hidden;
-}
-
-.hero-video-layer {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  min-width: 100%;
-  min-height: 100%;
-  width: auto;
-  height: auto;
-  transform: translate(-50%, -50%) scale(1.05);
-  object-fit: cover;
-  opacity: 0.72;
-  filter: contrast(1.15) brightness(0.9);
-  transition: transform 0.15s ease-out;
-}
-
+/* Atmospheric Vignette letting 3D tunnel shine through center */
 .hero-atmospheric-vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(5, 7, 10, 0.1) 0%, rgba(5, 7, 10, 0.85) 75%, #05070a 100%),
-              linear-gradient(180deg, rgba(5, 7, 10, 0.9) 0%, rgba(5, 7, 10, 0.2) 30%, rgba(5, 7, 10, 0.4) 70%, #05070a 100%);
+  background: radial-gradient(circle at 50% 50%, rgba(4, 6, 9, 0.15) 0%, rgba(4, 6, 9, 0.75) 65%, #040609 100%),
+              linear-gradient(180deg, rgba(4, 6, 9, 0.85) 0%, rgba(4, 6, 9, 0.05) 30%, rgba(4, 6, 9, 0.4) 65%, #040609 100%);
   pointer-events: none;
+  z-index: 2;
 }
 
-.hero-portal-ray {
+.hero-tunnel-radial {
   position: absolute;
-  top: 50%;
+  top: 45%;
   left: 50%;
-  width: 500px;
-  height: 500px;
+  width: 600px;
+  height: 600px;
   transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(125, 211, 252, 0.15) 0%, rgba(56, 189, 248, 0.05) 45%, transparent 70%);
-  filter: blur(50px);
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.1) 0%, rgba(14, 165, 233, 0.03) 50%, transparent 70%);
+  filter: blur(60px);
   pointer-events: none;
+  z-index: 2;
 }
 
 /* Hero Content Block */
 .hero-content {
   position: relative;
   z-index: 10;
-  max-width: 780px;
+  max-width: 800px;
   margin-top: auto;
   margin-bottom: auto;
   transition: transform 0.15s ease-out;
@@ -289,29 +280,45 @@ html, body {
   text-transform: uppercase;
   color: var(--accent-cyan);
   margin-bottom: 20px;
-  padding: 4px 10px;
+  padding: 5px 12px;
   background: rgba(56, 189, 248, 0.08);
-  border-left: 2px solid var(--accent-cyan);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 4px;
+}
+
+.eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan);
+  animation: pulse 2.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
 }
 
 .hero-headline {
   font-family: var(--font-display);
-  font-size: clamp(2.8rem, 5.5vw, 4.8rem);
+  font-size: clamp(3rem, 6vw, 5rem);
   font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
   color: #ffffff;
   margin-bottom: 22px;
-  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.9);
 }
 
 .hero-subtext {
   font-size: 1.15rem;
   line-height: 1.6;
   color: #cbd5e1;
-  max-width: 620px;
+  max-width: 640px;
   margin-bottom: 38px;
   font-weight: 300;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
 }
 
 .hero-actions {
@@ -323,7 +330,7 @@ html, body {
 
 .btn-primary {
   background: #ffffff;
-  color: #07090d;
+  color: #05070a;
   border: 1px solid #ffffff;
   padding: 13px 28px;
   font-size: 0.92rem;
@@ -331,62 +338,45 @@ html, body {
   letter-spacing: 0.04em;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.15);
 }
 
 .btn-primary:hover {
   background: #e2e8f0;
-  transform: translateY(-1px);
-  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(255, 255, 255, 0.25);
 }
 
-.btn-secondary {
-  background: rgba(15, 23, 32, 0.65);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 13px 26px;
-  font-size: 0.92rem;
-  font-weight: 500;
-  border-radius: 6px;
-  cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-secondary:hover {
-  background: rgba(30, 41, 59, 0.85);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: translateY(-1px);
-}
-
-/* Hero Mode Selection Tiles (4 options as required by PRD) */
+/* Hero Mode Selection Tiles (4 PRD Experiences) */
 .hero-tiles-grid {
   position: relative;
   z-index: 10;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 18px;
   width: 100%;
-  max-width: 1200px;
-  margin-top: 30px;
+  max-width: 1260px;
+  margin-top: 24px;
 }
 
 .hero-tile {
-  background: rgba(13, 19, 27, 0.65);
-  backdrop-filter: blur(14px);
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  padding: 20px 22px;
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-card);
+  border-radius: 10px;
+  padding: 22px 24px;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-card);
 }
 
 .hero-tile::before {
@@ -397,29 +387,64 @@ html, body {
   width: 100%;
   height: 2px;
   background: transparent;
-  transition: background 0.2s ease;
+  transition: background 0.25s ease;
 }
 
 .hero-tile:hover {
-  background: rgba(22, 32, 46, 0.85);
-  border-color: rgba(56, 189, 248, 0.4);
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  background: var(--bg-card-hover);
+  border-color: var(--border-highlight);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .hero-tile:hover::before {
   background: var(--accent-cyan);
 }
 
-.tile-icon {
-  font-size: 1.5rem;
+.tile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 12px;
-  color: var(--accent-cyan);
+}
+
+.tile-icon {
+  font-size: 1.55rem;
+}
+
+.tile-status-pill {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.pill-live {
+  background: rgba(56, 189, 248, 0.12);
+  color: #7dd3fc;
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.pill-fire {
+  background: rgba(244, 63, 94, 0.12);
+  color: #fda4af;
+  border-color: rgba(244, 63, 94, 0.3);
+}
+
+.pill-flood {
+  background: rgba(20, 184, 166, 0.12);
+  color: #5eead4;
+  border-color: rgba(20, 184, 166, 0.3);
 }
 
 .tile-title {
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 6px;
   color: #ffffff;
@@ -427,8 +452,25 @@ html, body {
 
 .tile-desc {
   font-size: 0.82rem;
-  line-height: 1.45;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  flex-grow: 1;
+}
+
+.tile-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
   color: var(--text-muted);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.hero-tile:hover .tile-footer {
+  color: var(--accent-cyan);
+  transform: translateX(3px);
 }
 
 /* 3D Overview / Simulation HUD Panels */
@@ -444,8 +486,8 @@ html, body {
 
 .hud-panel {
   pointer-events: auto;
-  background: rgba(10, 15, 23, 0.78);
-  backdrop-filter: blur(14px);
+  background: rgba(10, 15, 23, 0.82);
+  backdrop-filter: blur(16px);
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
   box-shadow: var(--shadow-cinematic);
@@ -455,8 +497,8 @@ html, body {
 #hud-level-info {
   position: absolute;
   top: 80px;
-  left: 24px;
-  padding: 14px 18px;
+  left: 28px;
+  padding: 14px 20px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -465,7 +507,7 @@ html, body {
 
 .hud-level-title {
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: 1.02rem;
   font-weight: 600;
   color: #ffffff;
 }
@@ -475,22 +517,22 @@ html, body {
   align-items: baseline;
   gap: 8px;
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: var(--accent-cyan);
 }
 
 .hud-rl-tag {
   color: var(--text-muted);
-  font-size: 0.75rem;
+  font-size: 0.76rem;
 }
 
 /* Layer Control & Cutaway Slider (Top Right) */
 #hud-layer-controls {
   position: absolute;
   top: 80px;
-  right: 24px;
+  right: 28px;
   padding: 16px 20px;
-  width: 260px;
+  width: 270px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -498,7 +540,7 @@ html, body {
 
 .panel-header {
   font-family: var(--font-display);
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -592,20 +634,6 @@ html, body {
   color: var(--text-primary);
 }
 
-/* Assumed Geometry 3D Tag styling */
-.assumed-tag-badge {
-  background: rgba(245, 158, 11, 0.85);
-  color: #000;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 3px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
-  pointer-events: none;
-  border: 1px solid #ffd166;
-}
-
 /* Responsive adjustments */
 @media (max-width: 1024px) {
   .hero-tiles-grid {
@@ -615,7 +643,7 @@ html, body {
 
 @media (max-width: 640px) {
   #home-hero {
-    padding: 80px 24px 32px;
+    padding: 70px 20px 24px;
   }
   .hero-tiles-grid {
     grid-template-columns: 1fr;

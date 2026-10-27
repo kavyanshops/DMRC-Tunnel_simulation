@@ -5,13 +5,6 @@ class App {
   private sceneManager!: SceneManager;
   private currentMode: AppMode = 'home';
 
-  // Parallax state for scene_7.mp4 hero
-  private mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
-  private heroVideoEl!: HTMLVideoElement | null;
-  private heroContentEl!: HTMLElement | null;
-  private heroPortalRayEl!: HTMLElement | null;
-  private heroContainerEl!: HTMLElement | null;
-
   // Layer visibility state
   private layerVisibility: LayerVisibilityState = {
     ground: true,
@@ -25,10 +18,14 @@ class App {
 
   constructor() {
     this.initScene();
-    this.initHeroParallax();
+    this.initCursorTracking();
+    this.initInteractiveCards();
     this.initNavigation();
     this.initLayerControls();
     this.initTelemetryHUD();
+
+    // Start with assumed tags hidden on Home cinematic view
+    this.sceneManager.setLayerVisibility('assumedTags', false);
   }
 
   private initScene() {
@@ -41,63 +38,67 @@ class App {
   }
 
   /**
-   * Smooth, cursor-reactive multi-layer parallax inspired by scene_7.mp4
+   * Continuous cursor tracking that drives real 3D perspective shifts in Three.js
    */
-  private initHeroParallax() {
-    this.heroVideoEl = document.getElementById('hero-video') as HTMLVideoElement;
-    this.heroContentEl = document.getElementById('hero-content-layer');
-    this.heroPortalRayEl = document.getElementById('hero-portal-ray');
-    this.heroContainerEl = document.getElementById('home-hero');
+  private initCursorTracking() {
+    const heroContentEl = document.getElementById('hero-content-layer');
 
-    if (!this.heroContainerEl) return;
-
-    // Track mouse position relative to window center
     window.addEventListener('mousemove', (e: MouseEvent) => {
       const halfW = window.innerWidth / 2;
       const halfH = window.innerHeight / 2;
-      this.mouse.targetX = (e.clientX - halfW) / halfW; // Range: -1 to 1
-      this.mouse.targetY = (e.clientY - halfH) / halfH; // Range: -1 to 1
-    });
+      const normX = (e.clientX - halfW) / halfW; // -1 to 1
+      const normY = (e.clientY - halfH) / halfH; // -1 to 1
 
-    // Reset smoothly when mouse leaves
-    window.addEventListener('mouseleave', () => {
-      this.mouse.targetX = 0;
-      this.mouse.targetY = 0;
-    });
-
-    // Parallax animation loop with smooth lerp
-    const updateParallax = () => {
-      if (this.currentMode === 'home') {
-        const lerpFactor = 0.05;
-        this.mouse.x += (this.mouse.targetX - this.mouse.x) * lerpFactor;
-        this.mouse.y += (this.mouse.targetY - this.mouse.y) * lerpFactor;
-
-        // Depth Layer 1: Background Tunnel Video (scene_7.mp4)
-        if (this.heroVideoEl) {
-          const moveX = -this.mouse.x * 24;
-          const moveY = -this.mouse.y * 18;
-          this.heroVideoEl.style.transform = `translate(calc(-50% + ${moveX.toFixed(2)}px), calc(-50% + ${moveY.toFixed(2)}px)) scale(1.06)`;
-        }
-
-        // Depth Layer 2: Portal Light Ray Glow
-        if (this.heroPortalRayEl) {
-          const glowX = -this.mouse.x * 40;
-          const glowY = -this.mouse.y * 30;
-          this.heroPortalRayEl.style.transform = `translate(calc(-50% + ${glowX.toFixed(2)}px), calc(-50% + ${glowY.toFixed(2)}px))`;
-        }
-
-        // Depth Layer 3: Foreground Content
-        if (this.heroContentEl) {
-          const contentX = this.mouse.x * 12;
-          const contentY = this.mouse.y * 8;
-          this.heroContentEl.style.transform = `translate(${contentX.toFixed(2)}px, ${contentY.toFixed(2)}px)`;
-        }
+      // Drive 3D scene camera parallax
+      if (this.sceneManager) {
+        this.sceneManager.updateMouseParallax(normX, normY);
       }
 
-      requestAnimationFrame(updateParallax);
-    };
+      // Subtle foreground typography counter-shift
+      if (heroContentEl && this.currentMode === 'home') {
+        const textX = normX * 8;
+        const textY = normY * 5;
+        heroContentEl.style.transform = `translate(${textX.toFixed(1)}px, ${textY.toFixed(1)}px)`;
+      }
+    });
 
-    requestAnimationFrame(updateParallax);
+    window.addEventListener('mouseleave', () => {
+      if (this.sceneManager) {
+        this.sceneManager.updateMouseParallax(0, 0);
+      }
+      if (heroContentEl) {
+        heroContentEl.style.transform = 'translate(0px, 0px)';
+      }
+    });
+  }
+
+  /**
+   * High-end 3D card tilt & dynamic spotlight border effect
+   */
+  private initInteractiveCards() {
+    const cards = document.querySelectorAll<HTMLElement>('.hero-tile');
+
+    cards.forEach((card) => {
+      card.addEventListener('mousemove', (e: MouseEvent) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left; // x position within element
+        const y = e.clientY - rect.top;  // y position within element
+
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        const rotateX = ((y - centerY) / centerY) * -6; // Max 6 deg tilt
+        const rotateY = ((x - centerX) / centerX) * 6;
+
+        card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-4px)`;
+        card.style.borderColor = 'rgba(56, 189, 248, 0.45)';
+      });
+
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+        card.style.borderColor = 'var(--border-card)';
+      });
+    });
   }
 
   /**
@@ -120,25 +121,29 @@ class App {
       );
       if (activeBtn) activeBtn.classList.add('active');
 
+      // Update 3D scene camera mode
+      this.sceneManager.setMode(mode);
+
       if (mode === 'home') {
         heroEl?.classList.remove('hidden');
         if (hudOverlay) hudOverlay.style.display = 'none';
+        this.sceneManager.setLayerVisibility('assumedTags', false);
       } else {
         // Entering 3D Overview or simulation
         heroEl?.classList.add('hidden');
         if (hudOverlay) hudOverlay.style.display = 'block';
+        this.sceneManager.setLayerVisibility('assumedTags', this.layerVisibility.assumedTags);
 
         if (mode === 'explorer') {
           this.sceneManager.overviewControls.resetView();
         } else {
-          // Milestone notification for future modes
           const modeTitles: Record<string, string> = {
             library: 'Component Library (Scheduled for Milestone 3)',
             sim_fire: 'Tunnel Fire & Smoke Emergency (Scheduled for Milestone 5)',
             sim_flood: 'Water Ingress Emergency (Scheduled for Milestone 6)'
           };
           const title = modeTitles[mode] || mode;
-          alert(`${title}\n\nCurrent focus: Milestone 1 (3D Scaled Model & Overview Mode). Click "3D Overview (M1)" to explore.`);
+          alert(`${title}\n\nCurrent active: Milestone 1 (3D Scaled Model & Overview Mode). Click "3D Overview (M1)" to explore.`);
         }
       }
     };
@@ -151,11 +156,10 @@ class App {
     document.getElementById('btn-nav-fire')?.addEventListener('click', () => setMode('sim_fire'));
     document.getElementById('btn-nav-flood')?.addEventListener('click', () => setMode('sim_flood'));
 
-    // Hero buttons
+    // Hero main CTA
     document.getElementById('btn-hero-enter')?.addEventListener('click', () => setMode('explorer'));
-    document.getElementById('btn-hero-library')?.addEventListener('click', () => setMode('library'));
 
-    // Hero four PRD tiles
+    // Hero 4 PRD experience tiles
     document.getElementById('tile-explore')?.addEventListener('click', () => setMode('explorer'));
     document.getElementById('tile-library')?.addEventListener('click', () => setMode('library'));
     document.getElementById('tile-fire')?.addEventListener('click', () => setMode('sim_fire'));
@@ -163,10 +167,9 @@ class App {
   }
 
   /**
-   * Layer controls & soil excavation cutaway slider
+   * Layer controls & soil cutaway slider
    */
   private initLayerControls() {
-    // Cutaway Slider
     const cutawaySlider = document.getElementById('slider-cutaway') as HTMLInputElement;
     const cutawayLabel = document.getElementById('cutaway-val');
 
@@ -178,7 +181,6 @@ class App {
       this.sceneManager.setSoilCutaway(val);
     });
 
-    // Checkbox Toggles
     const setupToggle = (id: string, layerKey: keyof LayerVisibilityState) => {
       const checkbox = document.getElementById(id) as HTMLInputElement;
       checkbox?.addEventListener('change', () => {

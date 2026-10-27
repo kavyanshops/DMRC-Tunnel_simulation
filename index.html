@@ -31,12 +31,12 @@
       </nav>
     </header>
 
-    <!-- 3D Canvas Viewport -->
+    <!-- 3D Canvas Viewport (Always active in background, providing real 3D depth) -->
     <main id="viewport-container">
       <canvas id="three-canvas"></canvas>
     </main>
 
-    <!-- HUD Overlay for 3D Viewport -->
+    <!-- HUD Overlay for 3D Viewport (Overview / Explorer) -->
     <div class="hud-layer" id="hud-overlay" style="display: none;">
       <!-- Level & Depth Info Badge -->
       <section class="hud-panel" id="hud-level-info" aria-label="Station Depth Telemetry">
@@ -106,16 +106,18 @@
       </footer>
     </div>
 
-    <!-- Cinematic Hero Section (Inspired by scene_7.mp4) -->
+    <!-- Cinematic Hero Section (Real-Time 3D WebGL Background) -->
     <section id="home-hero" aria-label="Portal Landing">
-      <div class="hero-bg-container" id="hero-bg-container">
-        <video class="hero-video-layer" id="hero-video" src="/scene_7.mp4" autoplay loop muted playsinline></video>
-        <div class="hero-atmospheric-vignette"></div>
-        <div class="hero-portal-ray" id="hero-portal-ray"></div>
-      </div>
+      <!-- Vignette and subtle atmospheric depth overlays -->
+      <div class="hero-atmospheric-vignette"></div>
+      <div class="hero-tunnel-radial" id="hero-tunnel-radial"></div>
 
+      <!-- Main Headline Content -->
       <div class="hero-content" id="hero-content-layer">
-        <div class="hero-eyebrow">DELHI METRO · VIRTUAL TRAINING</div>
+        <div class="hero-eyebrow">
+          <span class="eyebrow-dot"></span>
+          DELHI METRO · VIRTUAL TRAINING
+        </div>
         <h1 class="hero-headline">BEYOND THE SURFACE.</h1>
         <p class="hero-subtext">
           An interactive, high-fidelity 3D prototype of the Sadar Bazar underground MRTS station and stacked tunnel complex for worker training and spatial familiarization.
@@ -123,38 +125,63 @@
         <div class="hero-actions">
           <button class="btn-primary" id="btn-hero-enter">
             <span>ENTER 3D MODEL</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </button>
-          <button class="btn-secondary" id="btn-hero-library">
-            <span>EXPLORE CODEX</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
         </div>
       </div>
 
-      <!-- Four PRD Mode Tiles -->
+      <!-- Four Interactive Experience Tiles -->
       <nav class="hero-tiles-grid" aria-label="Training Experiences">
         <article class="hero-tile" id="tile-explore" role="button" tabindex="0">
-          <div class="tile-icon">🏛️</div>
+          <div class="tile-header">
+            <span class="tile-icon">🏛️</span>
+            <span class="tile-status-pill pill-live">Interactive 3D</span>
+          </div>
           <h2 class="tile-title">Explore 3D Model</h2>
           <p class="tile-desc">Inspect the 13.4m cut-and-cover box, 5 floor slabs, stacked running tunnels and soil cutaway.</p>
+          <div class="tile-footer">
+            <span>Launch Overview</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
         </article>
 
         <article class="hero-tile" id="tile-library" role="button" tabindex="0">
-          <div class="tile-icon">📑</div>
+          <div class="tile-header">
+            <span class="tile-icon">📑</span>
+            <span class="tile-status-pill">Codex</span>
+          </div>
           <h2 class="tile-title">Component Library</h2>
           <p class="tile-desc">Searchable engineering codex with verified dimensions, source citations and ASSUMED status badges.</p>
+          <div class="tile-footer">
+            <span>Browse Records</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
         </article>
 
         <article class="hero-tile" id="tile-fire" role="button" tabindex="0">
-          <div class="tile-icon">🔥</div>
+          <div class="tile-header">
+            <span class="tile-icon">🔥</span>
+            <span class="tile-status-pill pill-fire">Scenario 01</span>
+          </div>
           <h2 class="tile-title">Fire Simulation</h2>
           <p class="tile-desc">Deterministic bird's-eye scenario tracking smoke dispersion, ventilation status and zone alerts.</p>
+          <div class="tile-footer">
+            <span>Open Scenario</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
         </article>
 
         <article class="hero-tile" id="tile-flood" role="button" tabindex="0">
-          <div class="tile-icon">💧</div>
+          <div class="tile-header">
+            <span class="tile-icon">💧</span>
+            <span class="tile-status-pill pill-flood">Scenario 02</span>
+          </div>
           <h2 class="tile-title">Flooding Simulation</h2>
           <p class="tile-desc">Bird's-eye water ingress model tracking simulated groundwater seepage, sump telemetry and egress routes.</p>
+          <div class="tile-footer">
+            <span>Open Scenario</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
         </article>
       </nav>
     </section>

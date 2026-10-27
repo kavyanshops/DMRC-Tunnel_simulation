@@ -24,12 +24,12 @@ Primary source references:
 - **Handling**: In the 3D model, rails and platforms are positioned strictly at the drawing's stated RLs ($+202.60\text{ m}$ and $+187.90\text{ m}$). A permanent visible warning banner is attached to the tunnel asset:  
   *`"Gap unverified - ask authors/DMRC."`*
 
-### 1.3 UI/UX Design System: Cinematic Atmosphere (Reference Video `scene_7.mp4`)
-- **Atmosphere**: Deep charcoal (`#05070a`), midnight slate, and muted teal tones.
-- **Hero & Landing**: Vanishing point perspective into a deep metro tunnel with diffused volumetric light rays emanating from a distant portal.
-- **Cursor Parallax**: Restrained, smooth mouse-reactive interpolation ($lerp = 0.05$) displacing foreground content, atmospheric portal rays, and the tunnel background video (`scene_7.mp4`).
+### 1.3 UI/UX Design System: Real-Time 3D Cinematic Atmosphere
+- **Pure WebGL 3D Background**: Removed static/pre-rendered video. The homepage is now powered by a live, real-time Three.js 3D tunnel camera looking down the tracks toward the illuminated portal, with drifting atmospheric dust particles and lighting.
+- **Genuine 3D Cursor Tracking**: Mouse movements directly steer the 3D perspective camera with smooth interpolation ($lerp = 0.045$), creating realistic depth and parallax.
+- **Interactive 3D Cards**: Four experience cards with dynamic 3D tilt on hover (`perspective(1000px) rotateX/Y`), custom status pills, and glow borders.
+- **Clean Focus**: Removed secondary buttons; hero focuses on the single primary action (`ENTER 3D MODEL`).
 - **Permanent Safety Banner**: *"Training prototype — not approved for operational decisions."*
-- **Four Standard PRD Tiles**: Explore 3D Model, Component Library, Fire Simulation, Flooding Simulation.
 - **Performance**: High performance on student laptops via shared standard materials, low poly counts, and zero heavy textures.
 
 ---
