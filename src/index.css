@@ -356,10 +356,10 @@ html, body {
   position: relative;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 18px;
   width: 100%;
-  max-width: 1260px;
+  max-width: 1400px;
   margin-top: 24px;
 }
 

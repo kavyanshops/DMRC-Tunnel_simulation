@@ -132,3 +132,27 @@ Primary source references:
   - [ ] State machine determinism test suite.
   - [ ] Complete `README.md` auditing all ASSUMED parameters and source traceability.
   - [ ] Final git commit.
+
+---
+
+## 4. Construction Training Module (isolated add-on, `src/training/`)
+
+Entry: homepage card "Construction Training" -> `#construction-training` (lazy-loaded chunk). Legacy Explorer/scene code is preserved completely untouched.
+
+- [x] Training Hub with role selection (Worker / Site Engineer / Safety-Controller) and per-role checklist
+- [x] Construction Sequence Trainer (12 stages, timeline scrub, schematic visual states, dependencies, checkpoint questions)
+- [x] Monitoring Dashboard (6 SIMULATED parameters, thresholds, trends, alert states, anomaly flagging)
+- [x] Learning objectives (`data/learningObjectives.ts`), assessment rubric, session report with JSON/CSV export
+- [x] Decision-based Fire Emergency Scenario (`src/training/data/fireDecisionScenario.ts`, `src/training/scenarios/`):
+  - [x] 5 sequential decision points: evacuation vs battery extinguishment, smoke back-layering vs critical velocity, CP-01 pressurisation vs compartmentation, 25kV traction earthing & PTW, post-fire gas purge.
+  - [x] Real-time elapsed timer, live simulated telemetry cards, instant consequence feedback, and event log.
+  - [x] Scored debrief with required SME disclaimer.
+- [x] Decision-based Water Ingress / Flooding Scenario (`src/training/data/floodingDecisionScenario.ts`, `src/training/scenarios/`):
+  - [x] 5 sequential decision points: inflow surge & sump pump staging, soil fines wash-out & heritage building tilt, lower rail submergence & test train halt, polyurethane chemical grouting, megger testing & recovery.
+  - [x] Real-time elapsed timer, live simulated telemetry cards, instant consequence feedback, and event log.
+  - [x] Scored debrief with required SME disclaimer.
+- [x] Vitest suite: 13/13 tests passed covering data integrity, simulation determinism, scenario scoring, and UI flow (`npm test`).
+- [x] Browser visual verification & recording completed.
+
+SME-review required: every stage description, checkpoint, scenario, and monitoring threshold is tagged ASSUMED/Provisional. Thresholds and telemetry are illustrative (`SIMULATED — not real telemetry`).
+

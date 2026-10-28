@@ -23,6 +23,7 @@ class App {
     this.initNavigation();
     this.initLayerControls();
     this.initTelemetryHUD();
+    this.initTraining();
 
     // Start with assumed tags hidden on Home cinematic view
     this.sceneManager.setLayerVisibility('assumedTags', false);
@@ -110,6 +111,7 @@ class App {
 
     const setMode = (mode: AppMode) => {
       this.currentMode = mode;
+      this.closeTraining();
 
       // Update Nav Buttons
       document.querySelectorAll('.nav-btn').forEach((btn) => btn.classList.remove('active'));
@@ -214,6 +216,38 @@ class App {
         if (rlVal) rlVal.textContent = `(RL ${tel.rl >= 0 ? '+' : ''}${tel.rl.toFixed(2)} m)`;
       }
     }, 150);
+  }
+  /**
+   * Construction Training (isolated module in src/training, lazy-loaded).
+   * Opens at #construction-training. Does not touch scene state or existing modes.
+   */
+  private trainingOpen = false;
+
+  private initTraining() {
+    document.getElementById('tile-training')?.addEventListener('click', () => { location.hash = 'construction-training'; });
+    const sync = async () => {
+      if (location.hash === '#construction-training') {
+        const mod = await import('./training/TrainingApp');
+        document.getElementById('home-hero')?.classList.add('hidden');
+        const hud = document.getElementById('hud-overlay');
+        if (hud) hud.style.display = 'none';
+        document.querySelectorAll('.nav-btn').forEach((b) => b.classList.remove('active'));
+        mod.openTraining(document.getElementById('app') as HTMLElement);
+        this.trainingOpen = true;
+      } else if (this.trainingOpen) {
+        this.closeTraining();
+        if (this.currentMode === 'home') document.getElementById('home-hero')?.classList.remove('hidden');
+      }
+    };
+    window.addEventListener('hashchange', sync);
+    void sync();
+  }
+
+  private closeTraining() {
+    if (!this.trainingOpen) return;
+    this.trainingOpen = false;
+    if (location.hash === '#construction-training') history.replaceState(null, '', location.pathname + location.search);
+    void import('./training/TrainingApp').then((m) => m.closeTraining());
   }
 }
 
