@@ -86,25 +86,37 @@ Primary source references:
   - [x] Browser testing & verification.
 
 - [x] **M2: Walk Mode (First-Person Explorer) (COMPLETED & VERIFIED)**
-  - [x] FPS controller: WASD movement, mouse look via Pointer Lock, Shift to sprint (3.8 / 7.2 m/s).
-  - [x] Diaphragm wall boundary clamping ($X \in [-5.9, 5.9]$, $Z \in [-95, 95]$).
+  - [x] FPS controller: WASD movement (fixed W/S direction), mouse look via Pointer Lock, Shift to sprint (3.8 / 7.2 m/s).
+  - [x] Physical collision system preventing walking through walls:
+    - [x] Diaphragm wall and headwall boundary clamping ($X \in [-5.9, 5.9]$, $Z \in [-95, 95]$).
+    - [x] Structural column radial collision (0.80m clearance around all 10m grid columns).
+    - [x] Elevator shaft AABB collision (blocks entry unless door open and approaching opening).
+    - [x] Platform Screen Doors (PSD) track edge barrier on passenger platforms (stops falling onto track bed).
+    - [x] Concourse Automatic Fare Collection (AFC) barrier (blocks crossing turnstile line unless tapped open).
+  - [x] StationInterior subsystem with authentic Delhi Metro finishes:
+    - [x] Suspended acoustic baffle ceiling panels with overhead utility ducts and fire sprinkler pipes.
+    - [x] Polished granite floor tile textures and tactile warning/guidance paving.
+    - [x] Vitrified enamel wall cladding panels with DMRC color accent band.
+    - [x] Ballastless track plinth with dual UIC 60 steel rails and 3rd power rail.
+    - [x] DMRC AFC turnstile gates with card reader pads, LED status, and motorized acrylic flaps.
+    - [x] DMRC Ticket Vending Machines (TVMs) with interactive smart card recharge interface.
+    - [x] Customer Care & Information Booth with safety glass partition.
+    - [x] Security checkpoint with Door Frame Metal Detectors (DFMD) and baggage X-ray scanner.
+    - [x] Platform Screen Doors (PSD) with header boxes and door indicators.
+    - [x] Platform Passenger Information Display System (PIDS) electronic LED countdown hanging signs.
+    - [x] Stainless steel platform waiting benches (interactive sit/stand eye height toggle).
+    - [x] Emergency Stop Plunger (ESP) column boxes.
+    - [x] High-res bilingual wayfinding signage ("SADAR BAZAR / सदर बाज़ार", "WAY OUT / EXIT 1 & 2").
+  - [x] In-game Walk HUD & Interactivity:
+    - [x] Dynamic reticle target highlight (`.walk-reticle.has-target`) when aiming at interactive objects.
+    - [x] Reticle prompt pill (`[E] <ACTION TEXT>`).
+    - [x] Interactive modal card with DMRC branding, subsystem telemetry, and actions (e.g. Quick Recharge ₹100, Tap Card).
+    - [x] Compass tape, level badge, depth/RL telemetry, fast-travel dropdown, 2D radar minimap with interactive markers.
   - [x] Floor slab snapping with smooth stair slope interpolation (`computeFloorHeightAt`).
   - [x] 3 physical staircases with treads, risers, ramp backing, and handrails connecting all levels.
   - [x] Glass & steel animated elevator cabin with sliding doors, call buttons, and vertical lock.
-  - [x] Full-height Platform Screen Doors (PSDs) along track edges.
-  - [x] Wayfinding overhead signage.
-  - [x] Sub-stepping physics loop (50 ms max sub-step) for stable collision at all frame rates.
-  - [x] In-game Walk HUD: center reticle, compass tape (heading + cardinal), level badge, depth/RL telemetry.
-  - [x] Fast-travel dropdown to teleport between all verified station levels.
-  - [x] Interactive elevator call panel (appears when player enters elevator cabin).
-  - [x] 2D Canvas minimap radar (200 m station outline, trackway, stairs, elevator, player dot with FOV cone).
-  - [x] Keybinding hint bar (WASD, Shift, Mouse, Tab, Esc).
-  - [x] Tab key and UI button seamlessly toggle between Walk Mode and Overview Camera.
-  - [x] StationBuilder updated: stairwell openings and elevator shaft voids in Concourse and Intermediate slabs.
-  - [x] AssumedTagMarker: null-check for canvas 2D context (headless/JSDOM safety).
-  - [x] Vitest: 19/19 tests passing (13 training + 6 walk mode).
-  - [x] Vite production build passing.
-  - [x] Browser visual verification & recording completed.
+  - [x] Vitest: 21/21 tests passing (13 training + 8 walk mode).
+  - [x] Vite production build passing with 0 errors.
   - [x] Git commit after testing.
 
 - [ ] **M3: Component Library & Interaction System**

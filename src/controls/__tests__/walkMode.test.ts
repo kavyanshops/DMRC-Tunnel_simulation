@@ -126,4 +126,35 @@ describe('Walk Mode - FirstPersonControls Physics & Collision', () => {
     expect(telem.headingDegrees).toBe(180);
     expect(telem.cardinal).toBe('S');
   });
+
+  it('moves forward on KeyW and backward on KeyS (no inversion)', () => {
+    controls.yaw = 0; // facing forward along -Z
+    controls.feetPosition.set(0, depthToWorldY(10.16), 0);
+
+    // Simulate pressing KeyW
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW' }));
+    controls.update(0.1);
+    expect(controls.velocity.z).toBeLessThan(0); // moving forward into negative Z
+
+    // Release KeyW and press KeyS
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyW' }));
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyS' }));
+    controls.update(0.3);
+    expect(controls.velocity.z).toBeGreaterThan(0); // moving backward into positive Z
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyS' }));
+  });
+
+  it('prevents walking through structural columns and platform edge boundaries', () => {
+    // Column at X = -0.5, Z = 50 (cylinder radius 0.45m + player radius 0.35m = 0.80m)
+    controls.feetPosition.set(-0.5, depthToWorldY(10.16), 49.8);
+    controls.update(0.016);
+    const distToCol = Math.hypot(controls.feetPosition.x - (-0.5), controls.feetPosition.z - 50);
+    expect(distToCol).toBeGreaterThanOrEqual(0.79);
+
+    // On Upper Platform level, PSD prevents falling onto track bed (x <= 0.1)
+    controls.teleportToLevel('upper_platform');
+    controls.feetPosition.set(2.5, controls.feetPosition.y, 0); // attempt to walk into track bed
+    controls.update(0.016);
+    expect(controls.feetPosition.x).toBeLessThanOrEqual(0.1);
+  });
 });

@@ -3,6 +3,7 @@ import { GroundBuilder } from '../scene/GroundBuilder';
 import { StationBuilder } from '../scene/StationBuilder';
 import { TunnelBuilder } from '../scene/TunnelBuilder';
 import { CirculationBuilder } from '../scene/CirculationBuilder';
+import { StationInterior } from '../scene/StationInterior';
 import { CinematicAtmosphere } from '../scene/CinematicAtmosphere';
 import { OverviewControls } from '../controls/OverviewControls';
 import { FirstPersonControls } from '../controls/FirstPersonControls';
@@ -23,6 +24,7 @@ export class SceneManager {
   public stationBuilder: StationBuilder;
   public tunnelBuilder: TunnelBuilder;
   public circulationBuilder: CirculationBuilder;
+  public stationInterior: StationInterior;
   public atmosphere: CinematicAtmosphere;
 
   private currentMode: AppMode = 'home';
@@ -73,16 +75,19 @@ export class SceneManager {
     this.stationBuilder = new StationBuilder();
     this.tunnelBuilder = new TunnelBuilder();
     this.circulationBuilder = new CirculationBuilder();
+    this.stationInterior = new StationInterior();
     this.atmosphere = new CinematicAtmosphere();
 
     this.scene.add(this.groundBuilder.group);
     this.scene.add(this.stationBuilder.group);
     this.scene.add(this.tunnelBuilder.group);
     this.scene.add(this.circulationBuilder.group);
+    this.scene.add(this.stationInterior.group);
     this.scene.add(this.atmosphere.group);
 
     // First-Person Controls & HUD (Milestone 2 Walk Mode)
     this.firstPersonControls = new FirstPersonControls(this.camera, canvas, this.circulationBuilder);
+    this.firstPersonControls.setStationInterior(this.stationInterior);
     this.walkHUD = new WalkHUD(this.firstPersonControls, () => this.toggleCameraView());
 
     // Tab key switches between Overview and First-Person Walk modes
@@ -211,6 +216,7 @@ export class SceneManager {
         this.stationBuilder.columnsGroup.visible = visible;
         this.stationBuilder.platformsGroup.visible = visible;
         this.circulationBuilder.group.visible = visible;
+        this.stationInterior.group.visible = visible;
         break;
       case 'tunnels':
         this.tunnelBuilder.tunnelsGroup.visible = visible;
