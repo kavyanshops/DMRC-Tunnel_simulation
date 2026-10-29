@@ -166,7 +166,13 @@ class App {
     document.getElementById('tile-library')?.addEventListener('click', () => setMode('library'));
     document.getElementById('tile-fire')?.addEventListener('click', () => setMode('sim_fire'));
     document.getElementById('tile-flood')?.addEventListener('click', () => setMode('sim_flood'));
+
+    // Walk Mode enter button in Overview HUD
+    document.getElementById('btn-enter-walk')?.addEventListener('click', () => {
+      this.sceneManager.setCameraView('walk');
+    });
   }
+
 
   /**
    * Layer controls & soil cutaway slider

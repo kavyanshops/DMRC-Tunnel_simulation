@@ -121,14 +121,47 @@ export class StationBuilder {
     roofMesh.castShadow = true;
     this.slabsGroup.add(roofMesh);
 
-    // 2. Concourse Level Slab (RL +209.84, Depth 10.16m)
+    // 2. Concourse Level Slab (RL +209.84, Depth 10.16m) with stairwell & elevator openings
     const concDef = STATION_SPEC.levels.find(l => l.id === 'concourse')!;
-    const concGeom = new THREE.BoxGeometry(width, 0.4, length);
-    const concMesh = new THREE.Mesh(concGeom, slabMat);
-    concMesh.name = 'Concourse Floor Slab (RL +209.84)';
-    concMesh.position.set(0, depthToWorldY(concDef.depthBelowGround) - 0.2, 0);
-    concMesh.receiveShadow = true;
-    this.slabsGroup.add(concMesh);
+    const concY = depthToWorldY(concDef.depthBelowGround) - 0.2;
+    const concGroup = new THREE.Group();
+    concGroup.name = 'Concourse Floor Slab (RL +209.84)';
+
+    // North & South main slabs
+    const concNorth = new THREE.Mesh(new THREE.BoxGeometry(width, 0.4, 91), slabMat);
+    concNorth.position.set(0, concY, -54.5);
+    concNorth.receiveShadow = true;
+    concGroup.add(concNorth);
+
+    const concSouth = new THREE.Mesh(new THREE.BoxGeometry(width, 0.4, 91), slabMat);
+    concSouth.position.set(0, concY, 54.5);
+    concSouth.receiveShadow = true;
+    concGroup.add(concSouth);
+
+    // East corridor across the central void
+    const concEast = new THREE.Mesh(new THREE.BoxGeometry(6.7, 0.4, 18), slabMat);
+    concEast.position.set(3.35, concY, 0);
+    concEast.receiveShadow = true;
+    concGroup.add(concEast);
+
+    // West perimeter corridor
+    const concWest = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.4, 18), slabMat);
+    concWest.position.set(-6.25, concY, 0);
+    concWest.receiveShadow = true;
+    concGroup.add(concWest);
+
+    // North & South of lift corridor
+    const concLiftN = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 5.7), slabMat);
+    concLiftN.position.set(-4.5, concY, -6.15);
+    concLiftN.receiveShadow = true;
+    concGroup.add(concLiftN);
+
+    const concLiftS = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 9.7), slabMat);
+    concLiftS.position.set(-4.5, concY, 4.15);
+    concLiftS.receiveShadow = true;
+    concGroup.add(concLiftS);
+
+    this.slabsGroup.add(concGroup);
 
     // 3. Upper Platform Track Slab & Undercroft (RL +201.54, Depth 18.46m)
     const uUndDef = STATION_SPEC.levels.find(l => l.id === 'upper_undercroft')!;
@@ -141,12 +174,32 @@ export class StationBuilder {
 
     // 4. Intermediate Technical / Plant Level (RL +195.54, Depth 24.46m)
     const intDef = STATION_SPEC.levels.find(l => l.id === 'intermediate')!;
-    const intGeom = new THREE.BoxGeometry(width, 0.45, length);
-    const intMesh = new THREE.Mesh(intGeom, slabMat);
-    intMesh.name = 'Intermediate Floor Slab (RL +195.54)';
-    intMesh.position.set(0, depthToWorldY(intDef.depthBelowGround) - 0.225, 0);
-    intMesh.receiveShadow = true;
-    this.slabsGroup.add(intMesh);
+    const intY = depthToWorldY(intDef.depthBelowGround) - 0.225;
+    const intGroup = new THREE.Group();
+    intGroup.name = 'Intermediate Floor Slab (RL +195.54)';
+
+    // Slabs partitioned around stair 2, stair 3, and elevator openings
+    const intFarN = new THREE.Mesh(new THREE.BoxGeometry(width, 0.45, 65), slabMat);
+    intFarN.position.set(0, intY, -67.5);
+    intFarN.receiveShadow = true;
+    intGroup.add(intFarN);
+
+    const intFarS = new THREE.Mesh(new THREE.BoxGeometry(width, 0.45, 63), slabMat);
+    intFarS.position.set(0, intY, 68.5);
+    intFarS.receiveShadow = true;
+    intGroup.add(intFarS);
+
+    const intCenter = new THREE.Mesh(new THREE.BoxGeometry(6.7, 0.45, 72), slabMat);
+    intCenter.position.set(3.35, intY, 0);
+    intCenter.receiveShadow = true;
+    intGroup.add(intCenter);
+
+    const intWestCenter = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.45, 26), slabMat);
+    intWestCenter.position.set(-4.5, intY, 5);
+    intWestCenter.receiveShadow = true;
+    intGroup.add(intWestCenter);
+
+    this.slabsGroup.add(intGroup);
 
     // 5. Lower Undercroft / Base Foundation Slab (RL +186.09, Depth 33.91m)
     const lUndDef = STATION_SPEC.levels.find(l => l.id === 'lower_undercroft')!;

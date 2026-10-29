@@ -85,13 +85,27 @@ Primary source references:
   - [x] Cinematic UI integration (permanent banner + cursor-reactive hero based on `scene_7.mp4`).
   - [x] Browser testing & verification.
 
-- [ ] **M2: Walk Mode (First-Person Explorer)**
-  - [ ] FPS controller: WASD movement, mouse look via Pointer Lock, Shift to sprint.
-  - [ ] Floor slab and wall AABB collision system.
-  - [ ] Level transitions: vertical stairs, animated lifts, escalators.
-  - [ ] In-game HUD: real-time level identifier, depth below ground (m), compass.
-  - [ ] Minimap with live player marker ("you are here") and fast-travel waypoints.
-  - [ ] Git commit after testing.
+- [x] **M2: Walk Mode (First-Person Explorer) (COMPLETED & VERIFIED)**
+  - [x] FPS controller: WASD movement, mouse look via Pointer Lock, Shift to sprint (3.8 / 7.2 m/s).
+  - [x] Diaphragm wall boundary clamping ($X \in [-5.9, 5.9]$, $Z \in [-95, 95]$).
+  - [x] Floor slab snapping with smooth stair slope interpolation (`computeFloorHeightAt`).
+  - [x] 3 physical staircases with treads, risers, ramp backing, and handrails connecting all levels.
+  - [x] Glass & steel animated elevator cabin with sliding doors, call buttons, and vertical lock.
+  - [x] Full-height Platform Screen Doors (PSDs) along track edges.
+  - [x] Wayfinding overhead signage.
+  - [x] Sub-stepping physics loop (50 ms max sub-step) for stable collision at all frame rates.
+  - [x] In-game Walk HUD: center reticle, compass tape (heading + cardinal), level badge, depth/RL telemetry.
+  - [x] Fast-travel dropdown to teleport between all verified station levels.
+  - [x] Interactive elevator call panel (appears when player enters elevator cabin).
+  - [x] 2D Canvas minimap radar (200 m station outline, trackway, stairs, elevator, player dot with FOV cone).
+  - [x] Keybinding hint bar (WASD, Shift, Mouse, Tab, Esc).
+  - [x] Tab key and UI button seamlessly toggle between Walk Mode and Overview Camera.
+  - [x] StationBuilder updated: stairwell openings and elevator shaft voids in Concourse and Intermediate slabs.
+  - [x] AssumedTagMarker: null-check for canvas 2D context (headless/JSDOM safety).
+  - [x] Vitest: 19/19 tests passing (13 training + 6 walk mode).
+  - [x] Vite production build passing.
+  - [x] Browser visual verification & recording completed.
+  - [x] Git commit after testing.
 
 - [ ] **M3: Component Library & Interaction System**
   - [ ] Raycasting interaction (`[E]` key inspects highlighted objects).

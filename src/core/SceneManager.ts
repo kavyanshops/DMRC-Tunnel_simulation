@@ -2,20 +2,27 @@ import * as THREE from 'three';
 import { GroundBuilder } from '../scene/GroundBuilder';
 import { StationBuilder } from '../scene/StationBuilder';
 import { TunnelBuilder } from '../scene/TunnelBuilder';
+import { CirculationBuilder } from '../scene/CirculationBuilder';
 import { CinematicAtmosphere } from '../scene/CinematicAtmosphere';
 import { OverviewControls } from '../controls/OverviewControls';
+import { FirstPersonControls } from '../controls/FirstPersonControls';
+import { WalkHUD } from '../controls/WalkHUD';
 import { STATION_SPEC, worldYToDepth, worldYToRL } from '../data/stationSpec';
-import { AppMode, LayerVisibilityState } from '../types';
+import { AppMode, CameraViewMode, LayerVisibilityState } from '../types';
 
 export class SceneManager {
   public scene: THREE.Scene;
   public camera: THREE.PerspectiveCamera;
   public renderer: THREE.WebGLRenderer;
   public overviewControls: OverviewControls;
+  public firstPersonControls: FirstPersonControls;
+  public walkHUD: WalkHUD;
+  public cameraViewMode: CameraViewMode = 'overview';
 
   public groundBuilder: GroundBuilder;
   public stationBuilder: StationBuilder;
   public tunnelBuilder: TunnelBuilder;
+  public circulationBuilder: CirculationBuilder;
   public atmosphere: CinematicAtmosphere;
 
   private currentMode: AppMode = 'home';
@@ -65,12 +72,26 @@ export class SceneManager {
     this.groundBuilder = new GroundBuilder();
     this.stationBuilder = new StationBuilder();
     this.tunnelBuilder = new TunnelBuilder();
+    this.circulationBuilder = new CirculationBuilder();
     this.atmosphere = new CinematicAtmosphere();
 
     this.scene.add(this.groundBuilder.group);
     this.scene.add(this.stationBuilder.group);
     this.scene.add(this.tunnelBuilder.group);
+    this.scene.add(this.circulationBuilder.group);
     this.scene.add(this.atmosphere.group);
+
+    // First-Person Controls & HUD (Milestone 2 Walk Mode)
+    this.firstPersonControls = new FirstPersonControls(this.camera, canvas, this.circulationBuilder);
+    this.walkHUD = new WalkHUD(this.firstPersonControls, () => this.toggleCameraView());
+
+    // Tab key switches between Overview and First-Person Walk modes
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Tab' && this.currentMode === 'explorer') {
+        e.preventDefault();
+        this.toggleCameraView();
+      }
+    });
 
     // Window Resize
     window.addEventListener('resize', this.onWindowResize.bind(this));
@@ -131,14 +152,43 @@ export class SceneManager {
 
     if (mode === 'home') {
       this.overviewControls.controls.enabled = false;
+      this.firstPersonControls.enabled = false;
+      this.firstPersonControls.unlock();
+      this.walkHUD.setVisible(false);
       this.groundBuilder.group.visible = true;
       this.atmosphere.group.visible = true;
     } else {
-      // Explorer / 3D Overview Mode
-      this.overviewControls.controls.enabled = true;
-      this.overviewControls.resetView();
+      // Explorer / 3D Mode
+      this.setCameraView('overview');
     }
   }
+
+  public setCameraView(viewMode: CameraViewMode) {
+    this.cameraViewMode = viewMode;
+    const hudOverlay = document.getElementById('hud-overlay');
+
+    if (viewMode === 'walk') {
+      this.overviewControls.controls.enabled = false;
+      this.firstPersonControls.enabled = true;
+      this.firstPersonControls.updateCameraTransform();
+      this.walkHUD.setVisible(true);
+      if (hudOverlay) hudOverlay.style.display = 'none';
+      // When entering walk mode, automatically attempt pointer lock
+      this.firstPersonControls.lock();
+    } else {
+      this.firstPersonControls.enabled = false;
+      this.firstPersonControls.unlock();
+      this.overviewControls.controls.enabled = true;
+      this.overviewControls.resetView();
+      this.walkHUD.setVisible(false);
+      if (hudOverlay) hudOverlay.style.display = 'block';
+    }
+  }
+
+  public toggleCameraView() {
+    this.setCameraView(this.cameraViewMode === 'overview' ? 'walk' : 'overview');
+  }
+
 
   public updateMouseParallax(normX: number, normY: number) {
     this.mousePos.x = normX;
@@ -160,6 +210,7 @@ export class SceneManager {
         this.stationBuilder.slabsGroup.visible = visible;
         this.stationBuilder.columnsGroup.visible = visible;
         this.stationBuilder.platformsGroup.visible = visible;
+        this.circulationBuilder.group.visible = visible;
         break;
       case 'tunnels':
         this.tunnelBuilder.tunnelsGroup.visible = visible;
@@ -242,6 +293,10 @@ export class SceneManager {
       const lookZ = this.homeCamLook.z;
 
       this.camera.lookAt(lookX, lookY, lookZ);
+    } else if (this.cameraViewMode === 'walk') {
+      this.firstPersonControls.update(deltaTime);
+      const telem = this.firstPersonControls.getTelemetry();
+      this.walkHUD.update(telem, this.firstPersonControls.feetPosition, this.firstPersonControls.yaw);
     } else {
       this.overviewControls.update();
     }
@@ -252,6 +307,8 @@ export class SceneManager {
   public dispose() {
     this.isRunning = false;
     window.removeEventListener('resize', this.onWindowResize);
+    this.firstPersonControls.dispose();
     this.renderer.dispose();
   }
 }
+

@@ -14,44 +14,53 @@ export class AssumedTagMarker {
       const canvas = document.createElement('canvas');
       canvas.width = 512;
       canvas.height = 160;
-      const ctx = canvas.getContext('2d')!;
+      const ctx = canvas.getContext('2d');
 
-      // Crisp background rounded pill
-      ctx.fillStyle = 'rgba(245, 158, 11, 0.95)'; // Amber warning
-      ctx.strokeStyle = '#fef08a';
-      ctx.lineWidth = 6;
-      this.roundRect(ctx, 10, 10, 492, 140, 24);
-      ctx.fill();
-      ctx.stroke();
+      if (ctx) {
+        // Crisp background rounded pill
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.95)'; // Amber warning
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 6;
+        this.roundRect(ctx, 10, 10, 492, 140, 24);
+        ctx.fill();
+        ctx.stroke();
 
-      // Inner subtle border
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-      ctx.lineWidth = 2;
-      this.roundRect(ctx, 16, 16, 480, 128, 20);
-      ctx.stroke();
+        // Inner subtle border
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.lineWidth = 2;
+        this.roundRect(ctx, 16, 16, 480, 128, 20);
+        ctx.stroke();
 
-      // Main Text
-      ctx.font = 'bold 46px "JetBrains Mono", monospace';
-      ctx.fillStyle = '#05070a';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = subtitle ? 'alphabetic' : 'middle';
-      ctx.fillText(`[ ${text} ]`, 256, subtitle ? 72 : 84);
+        // Main Text
+        ctx.font = 'bold 46px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#05070a';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = subtitle ? 'alphabetic' : 'middle';
+        ctx.fillText(`[ ${text} ]`, 256, subtitle ? 72 : 84);
 
-      // Subtitle if provided
-      if (subtitle) {
-        ctx.font = '600 28px "Inter", sans-serif';
-        ctx.fillStyle = '#1c1917';
-        ctx.fillText(subtitle, 256, 118);
+        // Subtitle if provided
+        if (subtitle) {
+          ctx.font = '600 28px "Inter", sans-serif';
+          ctx.fillStyle = '#1c1917';
+          ctx.fillText(subtitle, 256, 118);
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
+        material = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          depthTest: true,
+          depthWrite: false
+        });
+      } else {
+        // Fallback for headless / test environments
+        material = new THREE.SpriteMaterial({
+          color: 0xf59e0b,
+          transparent: true,
+          opacity: 0.8
+        });
       }
-
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.minFilter = THREE.LinearFilter;
-      material = new THREE.SpriteMaterial({
-        map: texture,
-        transparent: true,
-        depthTest: true,
-        depthWrite: false
-      });
       this.spriteCache.set(key, material);
     }
 

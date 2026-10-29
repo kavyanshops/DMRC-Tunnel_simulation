@@ -526,6 +526,30 @@ html, body {
   font-size: 0.76rem;
 }
 
+.btn-walk-mode-toggle {
+  margin-top: 8px;
+  background: rgba(56, 189, 248, 0.16);
+  border: 1px solid var(--border-highlight);
+  color: var(--text-accent);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-walk-mode-toggle:hover {
+  background: rgba(56, 189, 248, 0.3);
+  border-color: #38bdf8;
+  transform: translateY(-1px);
+}
+
+
 /* Layer Control & Cutaway Slider (Top Right) */
 #hud-layer-controls {
   position: absolute;
@@ -652,3 +676,280 @@ html, body {
     display: none;
   }
 }
+
+/* ==========================================================================
+   Walk Mode HUD (First-Person Explorer)
+   ========================================================================== */
+.walk-hud {
+  position: absolute;
+  top: calc(var(--banner-height) + var(--header-height));
+  left: 0;
+  width: 100%;
+  height: calc(100% - var(--banner-height) - var(--header-height));
+  pointer-events: none;
+  z-index: 45;
+  transition: opacity 0.25s ease;
+}
+
+.walk-hud.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.walk-hud button,
+.walk-hud select,
+.walk-hud .walk-elevator-panel {
+  pointer-events: auto;
+}
+
+/* Center Reticle */
+.walk-reticle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reticle-dot {
+  width: 5px;
+  height: 5px;
+  background: rgba(56, 189, 248, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+/* Top Digital Compass */
+.walk-compass {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(6, 10, 16, 0.85);
+  border: 1px solid var(--border-highlight);
+  border-radius: 20px;
+  padding: 4px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.compass-marker {
+  color: var(--accent-amber);
+  font-size: 0.65rem;
+}
+
+.compass-val {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-accent);
+  letter-spacing: 0.08em;
+}
+
+/* Top-Left Level & Depth Telemetry */
+.walk-telem-card {
+  position: absolute;
+  top: 18px;
+  left: 24px;
+  background: rgba(6, 10, 16, 0.85);
+  border: 1px solid var(--border-card);
+  border-radius: 10px;
+  padding: 10px 16px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.walk-level-badge {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+
+.walk-level-stats {
+  font-size: 0.78rem;
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+}
+
+/* Top-Right Controls & Fast Travel */
+.walk-top-nav {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(6, 10, 16, 0.85);
+  border: 1px solid var(--border-card);
+  border-radius: 10px;
+  padding: 6px 12px;
+  backdrop-filter: blur(10px);
+}
+
+.ft-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.fast-travel-select {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-highlight);
+  color: var(--text-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+}
+
+.fast-travel-select option {
+  background: #0b1220;
+  color: #ffffff;
+}
+
+.hud-tab-btn {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid var(--border-highlight);
+  color: var(--text-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hud-tab-btn:hover {
+  background: rgba(56, 189, 248, 0.28);
+  border-color: #38bdf8;
+}
+
+/* Interactive Elevator Panel */
+.walk-elevator-panel {
+  position: absolute;
+  top: 100px;
+  left: 24px;
+  background: rgba(6, 12, 22, 0.95);
+  border: 1px solid var(--accent-cyan);
+  border-radius: 12px;
+  padding: 14px 18px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(56, 189, 248, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 50;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.walk-elevator-panel.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
+}
+
+.elev-head {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.elev-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.elev-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-card);
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.elev-btn:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: var(--border-highlight);
+  color: var(--text-accent);
+}
+
+/* 2D Minimap Radar */
+.walk-minimap-wrap {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(6, 10, 16, 0.85);
+  border: 1px solid var(--border-card);
+  border-radius: 10px;
+  padding: 10px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.minimap-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.walk-minimap {
+  width: 200px;
+  height: 70px;
+  display: block;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Bottom Walk Hints */
+.walk-hints {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(6, 10, 16, 0.85);
+  border: 1px solid var(--border-card);
+  border-radius: 20px;
+  padding: 8px 20px;
+  backdrop-filter: blur(10px);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.walk-hints kbd {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: #ffffff;
+  margin-right: 2px;
+}
+
