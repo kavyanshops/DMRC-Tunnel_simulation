@@ -183,6 +183,7 @@ export class SceneManager {
 
   public setCameraView(viewMode: CameraViewMode) {
     this.cameraViewMode = viewMode;
+    this.stationBuilder.setCutaway(viewMode !== 'walk');
     const hudOverlay = document.getElementById('hud-overlay');
 
     if (viewMode === 'walk') {
