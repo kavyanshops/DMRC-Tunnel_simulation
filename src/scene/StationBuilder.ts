@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { STATION_SPEC, depthToWorldY } from '../data/stationSpec';
+import { STATION_SPEC, TUNNEL_LAYOUT, depthToWorldY } from '../data/stationSpec';
 import { AssumedTagMarker } from './AssumedTagMarker';
 
 export class StationBuilder {
@@ -9,6 +9,8 @@ export class StationBuilder {
   public columnsGroup: THREE.Group;
   public platformsGroup: THREE.Group;
   public assumedEquipmentGroup: THREE.Group;
+  /** Upper part of the east wall: hidden in the overview cutaway, shown when walking inside. */
+  public eastWallUpper: THREE.Mesh | null = null;
 
   constructor() {
     this.group = new THREE.Group();
@@ -64,18 +66,30 @@ export class StationBuilder {
       side: THREE.DoubleSide
     });
 
-    // North End Wall (Headwall)
-    const northGeom = new THREE.BoxGeometry(width + wallThick * 2, boxHeight, wallThick);
-    const northWall = new THREE.Mesh(northGeom, wallMat);
-    northWall.position.set(0, centerY, -length / 2 - wallThick / 2);
-    northWall.castShadow = true;
-    northWall.receiveShadow = true;
-    this.boxGroup.add(northWall);
-
-    // South End Wall (Headwall)
-    const southWall = northWall.clone();
-    southWall.position.set(0, centerY, length / 2 + wallThick / 2);
-    this.boxGroup.add(southWall);
+    // Headwalls: solid diaphragm walls with a circular portal for each stacked TBM tunnel,
+    // so the bored tunnels visibly connect to the open station hall.
+    const outerR = STATION_SPEC.tbmTunnels.outerDiameter.value / 2;
+    const c = TUNNEL_LAYOUT.centers();
+    const makeHeadwall = (z: number) => {
+      const w = width + wallThick * 2;
+      const shape = new THREE.Shape();
+      shape.moveTo(-w / 2, -boxHeight / 2); shape.lineTo(w / 2, -boxHeight / 2);
+      shape.lineTo(w / 2, boxHeight / 2); shape.lineTo(-w / 2, boxHeight / 2); shape.closePath();
+      for (const cy of [c.upper, c.lower]) {
+        const hole = new THREE.Path();
+        hole.absarc(TUNNEL_LAYOUT.centerX, cy - centerY, outerR, 0, Math.PI * 2, true);
+        shape.holes.push(hole);
+      }
+      const geom = new THREE.ExtrudeGeometry(shape, { depth: wallThick, bevelEnabled: false, curveSegments: 32 });
+      geom.translate(0, centerY, -wallThick / 2);
+      const wall = new THREE.Mesh(geom, wallMat);
+      wall.position.set(0, 0, z);
+      wall.castShadow = true;
+      wall.receiveShadow = true;
+      this.boxGroup.add(wall);
+    };
+    makeHeadwall(-length / 2 - wallThick / 2);
+    makeHeadwall(length / 2 + wallThick / 2);
 
     // West Retaining Wall (Solid)
     const westGeom = new THREE.BoxGeometry(wallThick, boxHeight, length);
@@ -85,13 +99,29 @@ export class StationBuilder {
     westWall.receiveShadow = true;
     this.boxGroup.add(westWall);
 
+    // East wall interior finish (light cladding, matches the west side) so the hall isn't a dark void
+    const eastMat = new THREE.MeshStandardMaterial({ color: 0xa8b6c6, roughness: 0.7, metalness: 0.05 });
+
     // East Retaining Wall (Cutaway: upper half glass/open, bottom solid)
     const cutawayHeight = boxHeight * 0.35;
     const cutawayGeom = new THREE.BoxGeometry(wallThick, cutawayHeight, length);
-    const cutawayWall = new THREE.Mesh(cutawayGeom, wallMat);
+    const cutawayWall = new THREE.Mesh(cutawayGeom, eastMat);
     cutawayWall.position.set(width / 2 + wallThick / 2, bottomY + cutawayHeight / 2, 0);
     cutawayWall.receiveShadow = true;
     this.boxGroup.add(cutawayWall);
+
+    // Upper east wall: closes the hall when walking inside; removed in the overview cutaway.
+    const upperH = boxHeight - cutawayHeight;
+    const upper = new THREE.Mesh(new THREE.BoxGeometry(wallThick, upperH, length), eastMat);
+    upper.position.set(width / 2 + wallThick / 2, topY - upperH / 2, 0);
+    upper.visible = false;
+    this.eastWallUpper = upper;
+    this.boxGroup.add(upper);
+  }
+
+  /** Overview shows the cutaway (open east side); walk mode closes it so it reads as a real hall. */
+  public setCutaway(open: boolean) {
+    if (this.eastWallUpper) this.eastWallUpper.visible = !open;
   }
 
   /**

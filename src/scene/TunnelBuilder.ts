@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { STATION_SPEC, depthToWorldY } from '../data/stationSpec';
+import { STATION_SPEC, TUNNEL_LAYOUT, depthToWorldY } from '../data/stationSpec';
 import { AssumedTagMarker } from './AssumedTagMarker';
 
 export class TunnelBuilder {
@@ -36,105 +36,82 @@ export class TunnelBuilder {
     this.buildConflictNotice();
   }
 
+  /** Z ranges of the bored tunnels: only OUTSIDE the station box (headwall face -> portal end). */
+  private tunnelSpans(): Array<[number, number]> {
+    const half = STATION_SPEC.stationBox.length.value / 2;
+    return [[-TUNNEL_LAYOUT.outerEndZ, -half], [half, TUNNEL_LAYOUT.outerEndZ]];
+  }
+
   /**
-   * Builds the Upper and Lower stacked TBM bored tunnels
-   * Extending past both station headwalls
+   * Builds the Upper and Lower stacked TBM bored tunnels.
+   * Inside the 200 m station box the trains run in the open cut-and-cover hall, so there is no
+   * segmental lining there; the lining starts at each headwall opening and runs outward.
    */
   private buildStackedTunnels() {
     const outerR = STATION_SPEC.tbmTunnels.outerDiameter.value / 2; // 3.175 m
     const innerR = STATION_SPEC.tbmTunnels.innerDiameter.value / 2; // 2.90 m
-    const tunnelLength = 260; // 200m station + 30m each side
 
-    // Concrete segmental lining material
     const liningMat = new THREE.MeshStandardMaterial({
       color: 0x475569,
       roughness: 0.7,
       metalness: 0.2,
       side: THREE.DoubleSide
     });
-
-    // Ring segment groove lines material
     const ringLineMat = new THREE.LineBasicMaterial({ color: 0x1e293b });
 
-    // Upper and Lower Tunnel elevations
-    // Rail is at the base of the tunnel envelope: tunnel centre is rail level + (innerR - 0.5m track slab)
-    const upperRailLevel = STATION_SPEC.levels.find(l => l.id === 'upper_rail')!;
-    const lowerRailLevel = STATION_SPEC.levels.find(l => l.id === 'lower_rail')!;
-
-    const upperCenterY = depthToWorldY(upperRailLevel.depthBelowGround) + innerR - 0.6;
-    const lowerCenterY = depthToWorldY(lowerRailLevel.depthBelowGround) + innerR - 0.6;
-
-    // Grid transverse positions: tracks run along Grid A/B side of the station box
-    // According to WTC Fig 15, the stacked tracks run along the left/transverse corridor
-    const tunnelCenterX = 2.5; // Aligned with the platform trackway
-
+    const c = TUNNEL_LAYOUT.centers();
     [
-      { name: 'Upper TBM Tunnel', y: upperCenterY },
-      { name: 'Lower TBM Tunnel', y: lowerCenterY }
+      { name: 'Upper TBM Tunnel', y: c.upper },
+      { name: 'Lower TBM Tunnel', y: c.lower }
     ].forEach((tun) => {
-      // Hollow cylinder for precast concrete tunnel lining
-      // Three.js CylinderGeometry with open ends, or TubeGeometry
-      const geom = new THREE.CylinderGeometry(outerR, outerR, tunnelLength, 32, 26, true);
-      geom.rotateX(Math.PI / 2);
+      this.tunnelSpans().forEach(([z0, z1], idx) => {
+        const len = z1 - z0;
+        const geom = new THREE.CylinderGeometry(outerR, outerR, len, 32, Math.round(len / 1.5), true);
+        geom.rotateX(Math.PI / 2);
+        const tunnelMesh = new THREE.Mesh(geom, liningMat);
+        tunnelMesh.name = `${tun.name} (${idx === 0 ? 'north' : 'south'} drive)`;
+        tunnelMesh.position.set(TUNNEL_LAYOUT.centerX, tun.y, (z0 + z1) / 2);
+        tunnelMesh.castShadow = true;
+        tunnelMesh.receiveShadow = true;
+        this.tunnelsGroup.add(tunnelMesh);
 
-      const tunnelMesh = new THREE.Mesh(geom, liningMat);
-      tunnelMesh.name = tun.name;
-      tunnelMesh.position.set(tunnelCenterX, tun.y, 0);
-      tunnelMesh.castShadow = true;
-      tunnelMesh.receiveShadow = true;
-      this.tunnelsGroup.add(tunnelMesh);
-
-      // Precast segment joint rings along the tunnel length
-      for (let z = -tunnelLength / 2; z <= tunnelLength / 2; z += 1.5) {
-        const ringGeom = new THREE.RingGeometry(innerR, outerR, 32);
-        const ringEdges = new THREE.EdgesGeometry(ringGeom);
-        const ringLine = new THREE.LineSegments(ringEdges, ringLineMat);
-        ringLine.position.set(tunnelCenterX, tun.y, z);
-        this.tunnelsGroup.add(ringLine);
-      }
+        // Precast segment joint rings
+        for (let z = z0; z <= z1 + 1e-6; z += 1.5) {
+          const ringLine = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.RingGeometry(innerR, outerR, 32)), ringLineMat);
+          ringLine.position.set(TUNNEL_LAYOUT.centerX, tun.y, z);
+          this.tunnelsGroup.add(ringLine);
+        }
+      });
     });
   }
 
   /**
-   * Standard gauge metro rails with 1.885 m offset from tunnel centre
+   * Standard gauge approach track inside the bored tunnels. Track inside the station box is built
+   * by StationInterior (z = -80..80); this continues it from there out through the headwall
+   * portals, so no rail is drawn twice.
    */
   private buildTracks() {
-    const railMat = new THREE.MeshStandardMaterial({
-      color: 0x94a3b8,
-      roughness: 0.3,
-      metalness: 0.85
-    });
+    const railMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.3, metalness: 0.85 });
+    const sleeperMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 });
+    const trackGauge = 1.435;
+    const interiorTrackEnd = 80; // StationInterior track runs z = -80..80
+    const spans: Array<[number, number]> = [[-TUNNEL_LAYOUT.outerEndZ, -interiorTrackEnd], [interiorTrackEnd, TUNNEL_LAYOUT.outerEndZ]];
 
-    const sleeperMat = new THREE.MeshStandardMaterial({
-      color: 0x334155,
-      roughness: 0.9
-    });
-
-    const upperRailLevel = STATION_SPEC.levels.find(l => l.id === 'upper_rail')!;
-    const lowerRailLevel = STATION_SPEC.levels.find(l => l.id === 'lower_rail')!;
-
-    const trackSpan = 260;
-    const trackX = 2.5; // tunnel centre
-    const trackGauge = 1.435; // Standard gauge width
-
-    [upperRailLevel, lowerRailLevel].forEach((railDef) => {
-      const railY = depthToWorldY(railDef.depthBelowGround);
-
-      // Left rail and Right rail
-      [-trackGauge / 2, trackGauge / 2].forEach((offset) => {
-        const railGeom = new THREE.BoxGeometry(0.08, 0.16, trackSpan);
-        const railMesh = new THREE.Mesh(railGeom, railMat);
-        railMesh.position.set(trackX + offset, railY + 0.08, 0);
-        this.tracksGroup.add(railMesh);
+    ['upper_rail', 'lower_rail'].forEach((id) => {
+      const railY = depthToWorldY(STATION_SPEC.levels.find((l) => l.id === id)!.depthBelowGround);
+      spans.forEach(([z0, z1]) => {
+        const len = z1 - z0;
+        [-trackGauge / 2, trackGauge / 2].forEach((offset) => {
+          const rail = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.16, len), railMat);
+          rail.position.set(TUNNEL_LAYOUT.centerX + offset, railY + 0.08, (z0 + z1) / 2);
+          this.tracksGroup.add(rail);
+        });
+        for (let z = z0; z <= z1; z += 0.8) {
+          const sleeper = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.12, 0.22), sleeperMat);
+          sleeper.position.set(TUNNEL_LAYOUT.centerX, railY - 0.06, z);
+          this.tracksGroup.add(sleeper);
+        }
       });
-
-      // Track plinth / concrete ties
-      for (let z = -trackSpan / 2; z <= trackSpan / 2; z += 0.8) {
-        const sleeperGeom = new THREE.BoxGeometry(2.2, 0.12, 0.22);
-        const sleeper = new THREE.Mesh(sleeperGeom, sleeperMat);
-        sleeper.position.set(trackX, railY - 0.06, z);
-        this.tracksGroup.add(sleeper);
-      }
     });
   }
 

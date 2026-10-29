@@ -430,3 +430,20 @@ export function worldYToRL(y: number): number {
 export function worldYToDepth(y: number): number {
   return -y;
 }
+
+/**
+ * Where the stacked TBM tunnels meet the station box. Shared by the headwall openings
+ * (StationBuilder), the bored-tunnel lining and approach track (TunnelBuilder) so they line up
+ * with the in-station track at X = 3.0 (StationInterior).
+ */
+export const TUNNEL_LAYOUT = {
+  centerX: 3.0,
+  /** Bored tunnels exist only outside the station box: from the headwall out to this |Z|. */
+  outerEndZ: 130,
+  /** Tunnel centre height (world Y) for each running line. */
+  centers(): { upper: number; lower: number } {
+    const innerR = STATION_SPEC.tbmTunnels.innerDiameter.value / 2;
+    const rail = (id: string) => -(STATION_SPEC.levels.find((l) => l.id === id)!.depthBelowGround);
+    return { upper: rail('upper_rail') + innerR - 0.6, lower: rail('lower_rail') + innerR - 0.6 };
+  }
+};
