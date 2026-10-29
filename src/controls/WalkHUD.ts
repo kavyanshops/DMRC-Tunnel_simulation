@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { FirstPersonControls, PlayerTelemetry } from './FirstPersonControls';
 import type { StationInteractable } from '../scene/StationInterior';
+import type { ComponentLibrary } from '../ui/ComponentLibrary';
 
 export class WalkHUD {
   public root: HTMLElement;
@@ -22,10 +23,12 @@ export class WalkHUD {
 
   private controls: FirstPersonControls;
   private onToggleMode: () => void;
+  private componentLibrary?: ComponentLibrary;
 
-  constructor(controls: FirstPersonControls, onToggleMode: () => void) {
+  constructor(controls: FirstPersonControls, onToggleMode: () => void, componentLibrary?: ComponentLibrary) {
     this.controls = controls;
     this.onToggleMode = onToggleMode;
+    this.componentLibrary = componentLibrary;
 
     this.root = document.createElement('div');
     this.root.id = 'walk-hud-root';
@@ -69,6 +72,13 @@ export class WalkHUD {
     tabBtn.innerHTML = `<span>Overview (Tab)</span>`;
     tabBtn.addEventListener('click', () => this.onToggleMode());
 
+    const libBtn = document.createElement('button');
+    libBtn.className = 'hud-tab-btn';
+    libBtn.innerHTML = `<span>Library (C)</span>`;
+    libBtn.addEventListener('click', () => {
+      this.componentLibrary?.toggleVisible();
+    });
+
     const ftLabel = document.createElement('span');
     ftLabel.className = 'ft-label';
     ftLabel.textContent = 'Jump to:';
@@ -88,7 +98,7 @@ export class WalkHUD {
       this.controls.domElement.focus();
     });
 
-    topNav.append(ftLabel, this.fastTravelSelect, tabBtn);
+    topNav.append(ftLabel, this.fastTravelSelect, libBtn, tabBtn);
 
     // 6. Interactive Elevator Call Panel (appears when inside elevator)
     this.elevatorPanel = document.createElement('div');
@@ -128,6 +138,7 @@ export class WalkHUD {
       <span class="hint-item"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</span>
       <span class="hint-item"><kbd>Shift</kbd> Sprint</span>
       <span class="hint-item"><kbd>E</kbd> Interact</span>
+      <span class="hint-item"><kbd>C</kbd> Library</span>
       <span class="hint-item"><kbd>Mouse</kbd> Look</span>
       <span class="hint-item"><kbd>Tab</kbd> Overview</span>
       <span class="hint-item"><kbd>Esc</kbd> Unlock</span>

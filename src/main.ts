@@ -138,14 +138,15 @@ class App {
 
         if (mode === 'explorer') {
           this.sceneManager.overviewControls.resetView();
+        } else if (mode === 'library') {
+          this.sceneManager.componentLibrary.setVisible(true);
         } else {
           const modeTitles: Record<string, string> = {
-            library: 'Component Library (Scheduled for Milestone 3)',
             sim_fire: 'Tunnel Fire & Smoke Emergency (Scheduled for Milestone 5)',
             sim_flood: 'Water Ingress Emergency (Scheduled for Milestone 6)'
           };
           const title = modeTitles[mode] || mode;
-          alert(`${title}\n\nCurrent active: Milestone 1 (3D Scaled Model & Overview Mode). Click "3D Overview (M1)" to explore.`);
+          alert(`${title}\n\nCurrent active: Milestone 1-3. Click "3D Overview" or "Component Library" to explore.`);
         }
       }
     };
@@ -154,7 +155,9 @@ class App {
     document.getElementById('nav-brand')?.addEventListener('click', () => setMode('home'));
     document.getElementById('btn-nav-home')?.addEventListener('click', () => setMode('home'));
     document.getElementById('btn-nav-overview')?.addEventListener('click', () => setMode('explorer'));
-    document.getElementById('btn-nav-library')?.addEventListener('click', () => setMode('library'));
+    document.getElementById('btn-nav-library')?.addEventListener('click', () => {
+      this.sceneManager.componentLibrary.toggleVisible();
+    });
     document.getElementById('btn-nav-fire')?.addEventListener('click', () => setMode('sim_fire'));
     document.getElementById('btn-nav-flood')?.addEventListener('click', () => setMode('sim_flood'));
 
@@ -163,13 +166,20 @@ class App {
 
     // Hero 4 PRD experience tiles
     document.getElementById('tile-explore')?.addEventListener('click', () => setMode('explorer'));
-    document.getElementById('tile-library')?.addEventListener('click', () => setMode('library'));
+    document.getElementById('tile-library')?.addEventListener('click', () => {
+      this.sceneManager.componentLibrary.setVisible(true);
+    });
     document.getElementById('tile-fire')?.addEventListener('click', () => setMode('sim_fire'));
     document.getElementById('tile-flood')?.addEventListener('click', () => setMode('sim_flood'));
 
     // Walk Mode enter button in Overview HUD
     document.getElementById('btn-enter-walk')?.addEventListener('click', () => {
       this.sceneManager.setCameraView('walk');
+    });
+
+    // Component library button in Overview HUD
+    document.getElementById('btn-open-comp-lib')?.addEventListener('click', () => {
+      this.sceneManager.componentLibrary.toggleVisible();
     });
   }
 

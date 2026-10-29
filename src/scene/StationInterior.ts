@@ -126,6 +126,7 @@ export class StationInterior {
   // Station Dimensions
   private readonly width = STATION_SPEC.stationBox.width.value;   // 13.4m
   private readonly length = STATION_SPEC.stationBox.length.value; // 200m
+  private readonly platWidth = STATION_SPEC.assumedArchitectural.platformWidth.value; // 4.8m
   private readonly platLength = STATION_SPEC.assumedArchitectural.platformLength.value; // 140m
 
   // Animated elements
@@ -226,52 +227,71 @@ export class StationInterior {
    * Suspended acoustic ceiling baffle strips (realistic architectural ceiling)
    */
   private buildCeilingBaffles() {
-    const levels = [
-      { ceilY: depthToWorldY(5.36), name: 'concourse' },
-      { ceilY: depthToWorldY(10.56), name: 'upper_platform' },
-      { ceilY: depthToWorldY(18.96), name: 'intermediate' },
-      { ceilY: depthToWorldY(24.91), name: 'lower_platform' },
-    ];
-
     const baffleW = this.width - 2.0;
-    levels.forEach((lvl) => {
-      // Solid ceiling backing
-      const backPlane = new THREE.Mesh(
-        new THREE.PlaneGeometry(baffleW, this.length - 4),
-        this.ceilingMat
-      );
-      backPlane.rotation.x = Math.PI / 2;
-      backPlane.position.set(0, lvl.ceilY - 0.02, 0);
-      this.group.add(backPlane);
 
-      // Acoustic linear metal baffles every 5 metres
-      for (let z = -90; z <= 90; z += 5) {
-        const baffle = new THREE.Mesh(
-          new THREE.BoxGeometry(baffleW, 0.2, 0.08),
-          this.stainlessMat
-        );
-        baffle.position.set(0, lvl.ceilY - 0.12, z);
+    // 1. Concourse ceiling (under roof slab, depth 5.36m)
+    const concCeilY = depthToWorldY(5.36) - 0.02;
+    const concBack = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, this.length - 4), this.ceilingMat);
+    concBack.rotation.x = Math.PI / 2;
+    concBack.position.set(0, concCeilY, 0);
+    this.group.add(concBack);
+
+    // 2. Upper Platform ceiling (under Concourse slab, depth 10.56m) - leave open for Stair 1 and lift
+    const uplatCeilY = depthToWorldY(10.56) - 0.02;
+    // North section (Z: -98 to -9)
+    const upN = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 89), this.ceilingMat);
+    upN.rotation.x = Math.PI / 2;
+    upN.position.set(0, uplatCeilY, -53.5);
+    this.group.add(upN);
+
+    // South section (Z: 9 to 98)
+    const upS = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 89), this.ceilingMat);
+    upS.rotation.x = Math.PI / 2;
+    upS.position.set(0, uplatCeilY, 53.5);
+    this.group.add(upS);
+
+    // East side strip across central stairwell void (X: 0.2 to 5.7, Z: -9 to 9)
+    const upEast = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 18), this.ceilingMat);
+    upEast.rotation.x = Math.PI / 2;
+    upEast.position.set(2.95, uplatCeilY, 0);
+    this.group.add(upEast);
+
+    // 3. Intermediate ceiling (under Upper track, depth 18.96m) - leave open for Stair 2
+    const intCeilY = depthToWorldY(18.96) - 0.02;
+    const intN = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 114), this.ceilingMat);
+    intN.rotation.x = Math.PI / 2;
+    intN.position.set(0, intCeilY, -41);
+    this.group.add(intN);
+
+    const intS = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 61), this.ceilingMat);
+    intS.rotation.x = Math.PI / 2;
+    intS.position.set(0, intCeilY, 67.5);
+    this.group.add(intS);
+
+    // 4. Lower Platform ceiling (depth 24.91m) - leave open for Stair 3
+    const lpCeilY = depthToWorldY(24.91) - 0.02;
+    const lpFarN = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 63), this.ceilingMat);
+    lpFarN.rotation.x = Math.PI / 2;
+    lpFarN.position.set(0, lpCeilY, -66.5);
+    this.group.add(lpFarN);
+
+    const lpFarS = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 115), this.ceilingMat);
+    lpFarS.rotation.x = Math.PI / 2;
+    lpFarS.position.set(0, lpCeilY, 40.5);
+    this.group.add(lpFarS);
+
+    // Acoustic baffles and ductwork
+    [concCeilY, uplatCeilY, intCeilY, lpCeilY].forEach((ceilY) => {
+      for (let z = -90; z <= 90; z += 10) {
+        // Skip baffles directly inside stairwell voids
+        if (Math.abs(z) < 9 && ceilY === uplatCeilY) continue;
+        if (z >= 17 && z <= 37 && ceilY === intCeilY) continue;
+        if (z >= -35 && z <= -17 && ceilY === lpCeilY) continue;
+
+        const baffle = new THREE.Mesh(new THREE.BoxGeometry(baffleW, 0.2, 0.08), this.stainlessMat);
+        baffle.position.set(0, ceilY - 0.12, z);
         this.group.add(baffle);
       }
-
-      // Overhead utility pipes and HVAC ductwork running along the ceiling
-      [-3.0, 3.0].forEach((pipeX) => {
-        const duct = new THREE.Mesh(
-          new THREE.BoxGeometry(0.8, 0.4, this.length - 6),
-          this.stainlessMat
-        );
-        duct.position.set(pipeX, lvl.ceilY - 0.3, 0);
-        this.group.add(duct);
-
-        // Fire sprinkler pipe (red)
-        const firePipe = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.04, 0.04, this.length - 6, 8),
-          this.emergencyRedMat
-        );
-        firePipe.rotation.x = Math.PI / 2;
-        firePipe.position.set(pipeX + 0.5, lvl.ceilY - 0.2, 0);
-        this.group.add(firePipe);
-      });
     });
   }
 
@@ -279,54 +299,104 @@ export class StationInterior {
    * Polished granite floor overlays and tactile guidance paths
    */
   private buildGraniteFloors() {
-    const floorLevels = [
-      { depth: 10.16, id: 'concourse' },
-      { depth: 16.31, id: 'upper_platform' },
-      { depth: 24.46, id: 'intermediate' },
-      { depth: 31.01, id: 'lower_platform' },
-    ];
+    const baffleW = this.width - 2.0;
 
-    floorLevels.forEach((fl) => {
-      const y = depthToWorldY(fl.depth) + 0.005;
+    // 1. Concourse Floor (Depth 10.16m): Partitioned so Stair 1 and elevator openings are visible!
+    const concY = depthToWorldY(10.16) + 0.005;
 
-      // Granite tile floor finish overlay
-      const floorTile = new THREE.Mesh(
-        new THREE.PlaneGeometry(this.width - 2.0, this.length - 4),
-        this.floorMat
-      );
-      floorTile.rotation.x = -Math.PI / 2;
-      floorTile.position.set(0, y, 0);
-      floorTile.receiveShadow = true;
-      this.group.add(floorTile);
+    // North slab (Z: -98 to -9)
+    const concNorthFloor = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 89), this.floorMat);
+    concNorthFloor.rotation.x = -Math.PI / 2;
+    concNorthFloor.position.set(0, concY, -53.5);
+    concNorthFloor.receiveShadow = true;
+    this.group.add(concNorthFloor);
 
-      // Platform tactile paving strip (0.6m from platform edge along Z = -70 to +70)
-      if (fl.id === 'upper_platform' || fl.id === 'lower_platform') {
-        const tactileStrip = new THREE.Mesh(
-          new THREE.BoxGeometry(0.4, 0.015, this.platLength),
-          this.tactileMat
-        );
-        tactileStrip.position.set(0.0, y + 0.008, 0);
-        this.group.add(tactileStrip);
+    // South slab (Z: 9 to 98)
+    const concSouthFloor = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 89), this.floorMat);
+    concSouthFloor.rotation.x = -Math.PI / 2;
+    concSouthFloor.position.set(0, concY, 53.5);
+    concSouthFloor.receiveShadow = true;
+    this.group.add(concSouthFloor);
 
-        // Yellow warning edge line right at the platform edge
-        const yellowLine = new THREE.Mesh(
-          new THREE.BoxGeometry(0.12, 0.016, this.platLength),
-          this.tactileMat
-        );
-        yellowLine.position.set(0.2, y + 0.008, 0);
-        this.group.add(yellowLine);
-      }
+    // East walkway corridor past central stairwell (X: 0.1 to 5.7, Z: -9 to 9)
+    const concEastFloor = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 18), this.floorMat);
+    concEastFloor.rotation.x = -Math.PI / 2;
+    concEastFloor.position.set(2.9, concY, 0);
+    concEastFloor.receiveShadow = true;
+    this.group.add(concEastFloor);
 
-      // Concourse central tactile directional path leading to ticket gates
-      if (fl.id === 'concourse') {
-        const concTactile = new THREE.Mesh(
-          new THREE.BoxGeometry(0.6, 0.015, 60),
-          this.tactileMat
-        );
-        concTactile.position.set(0, y + 0.008, -20);
-        this.group.add(concTactile);
-      }
-    });
+    // West walkway corridor past elevator (X: -5.7 to -4.8, Z: -9 to 9)
+    const concWestFloor = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 18), this.floorMat);
+    concWestFloor.rotation.x = -Math.PI / 2;
+    concWestFloor.position.set(-5.25, concY, 0);
+    concWestFloor.receiveShadow = true;
+    this.group.add(concWestFloor);
+
+    // Concourse central tactile directional path leading to ticket gates
+    const concTactile = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.015, 60), this.tactileMat);
+    concTactile.position.set(0, concY + 0.008, -20);
+    this.group.add(concTactile);
+
+    // 2. Upper Platform Floor (Depth 16.31m)
+    const upY = depthToWorldY(16.31) + 0.005;
+    // North section (Z: -98 to 17)
+    const upNorthFloor = new THREE.Mesh(new THREE.PlaneGeometry(this.platWidth, 115), this.floorMat);
+    upNorthFloor.rotation.x = -Math.PI / 2;
+    upNorthFloor.position.set(-2.2, upY, -40.5);
+    upNorthFloor.receiveShadow = true;
+    this.group.add(upNorthFloor);
+
+    // South section (Z: 37 to 98)
+    const upSouthFloor = new THREE.Mesh(new THREE.PlaneGeometry(this.platWidth, 61), this.floorMat);
+    upSouthFloor.rotation.x = -Math.PI / 2;
+    upSouthFloor.position.set(-2.2, upY, 67.5);
+    upSouthFloor.receiveShadow = true;
+    this.group.add(upSouthFloor);
+
+    // Tactile strips along Upper Platform edge
+    const upTactile = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.015, this.platLength), this.tactileMat);
+    upTactile.position.set(0.0, upY + 0.008, 0);
+    this.group.add(upTactile);
+
+    const upYellow = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.016, this.platLength), this.tactileMat);
+    upYellow.position.set(0.2, upY + 0.008, 0);
+    this.group.add(upYellow);
+
+    // 3. Intermediate Plant Floor (Depth 24.46m)
+    const intY = depthToWorldY(24.46) + 0.005;
+    const intFarNFloor = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 63), this.floorMat);
+    intFarNFloor.rotation.x = -Math.PI / 2;
+    intFarNFloor.position.set(0, intY, -66.5);
+    intFarNFloor.receiveShadow = true;
+    this.group.add(intFarNFloor);
+
+    const intFarSFloor = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 61), this.floorMat);
+    intFarSFloor.rotation.x = -Math.PI / 2;
+    intFarSFloor.position.set(0, intY, 67.5);
+    intFarSFloor.receiveShadow = true;
+    this.group.add(intFarSFloor);
+
+    const intMidFloor = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 72), this.floorMat);
+    intMidFloor.rotation.x = -Math.PI / 2;
+    intMidFloor.position.set(2.9, intY, 0);
+    intMidFloor.receiveShadow = true;
+    this.group.add(intMidFloor);
+
+    // 4. Lower Platform Floor (Depth 31.01m)
+    const lpY = depthToWorldY(31.01) + 0.005;
+    const lpFloor = new THREE.Mesh(new THREE.PlaneGeometry(this.platWidth, this.platLength), this.floorMat);
+    lpFloor.rotation.x = -Math.PI / 2;
+    lpFloor.position.set(-2.2, lpY, 0);
+    lpFloor.receiveShadow = true;
+    this.group.add(lpFloor);
+
+    const lpTactile = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.015, this.platLength), this.tactileMat);
+    lpTactile.position.set(0.0, lpY + 0.008, 0);
+    this.group.add(lpTactile);
+
+    const lpYellow = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.016, this.platLength), this.tactileMat);
+    lpYellow.position.set(0.2, lpY + 0.008, 0);
+    this.group.add(lpYellow);
   }
 
   /**

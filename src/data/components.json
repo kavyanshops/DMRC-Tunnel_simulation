@@ -1,0 +1,454 @@
+[
+  {
+    "id": "comp-dwall",
+    "name": "Diaphragm Wall (D-Wall)",
+    "nameHindi": "डायाफ्राम दीवार",
+    "category": "Structural",
+    "confidence": "Verified",
+    "source": "WTC 2022 Fig 15",
+    "levelId": "station_box",
+    "levelName": "Station Perimeter Envelope",
+    "coordinates": { "x": -5.9, "y": -19.0, "z": 0.0 },
+    "depthBelowGround": 19.0,
+    "rl": 201.0,
+    "description": "Reinforced concrete perimeter diaphragm wall enclosing the 13.4m wide cut-and-cover station box down to fresh Delhi quartzite bedrock. Acts as both earth retaining structure and groundwater cutoff wall.",
+    "specifications": {
+      "Width / Thickness": "0.80 m (800 mm)",
+      "Excavation Method": "Hydromill / Bentonite slurry trenching",
+      "Depth Enclosure": "From -4.36m down to -34.50m (Depth 30.14m)",
+      "Concrete Grade": "M40 Tremie Concrete with water-repellent admixtures"
+    },
+    "inspectionProtocol": [
+      "Check for groundwater seepage or damp patches along vertical construction joints",
+      "Inspect crack width using optical comparator (limit <= 0.2 mm for water-retaining structures)",
+      "Verify inclinometer readings for horizontal wall deflection during excavation stages"
+    ],
+    "safetyNotice": "Inspection only. Any water leaks exceeding 10 L/min require immediate polyurethane chemical grouting."
+  },
+  {
+    "id": "comp-roof-slab",
+    "name": "Station Box Roof Slab",
+    "nameHindi": "स्टेशन छत स्लैब",
+    "category": "Structural",
+    "confidence": "Verified",
+    "source": "WTC 2022 Fig 15 annotation",
+    "levelId": "roof_underside",
+    "levelName": "Roof Underside (RL +214.64)",
+    "coordinates": { "x": 0.0, "y": -5.36, "z": -15.0 },
+    "depthBelowGround": 5.36,
+    "rl": 214.64,
+    "description": "Heavy reinforced concrete roof slab supporting 4.36m of sandy silt overburden, city traffic, utility pipes, and surface structures along Sadar Bazar corridor.",
+    "specifications": {
+      "Thickness": "1.00 m (calculated: RL +215.64 to +214.64)",
+      "Overburden Soil Cover": "4.36 m",
+      "Waterproofing Membrane": "Bonded SBS modified bituminous membrane with protective screed",
+      "Design Surcharge": "70 kPa traffic & building load"
+    },
+    "inspectionProtocol": [
+      "Inspect soffit for water dripping or efflorescence deposits",
+      "Check utility penetrations and expansion joints for elastomeric seal integrity",
+      "Verify structural vibration amplitude during peak heavy freight train/road traffic"
+    ]
+  },
+  {
+    "id": "comp-concourse-slab",
+    "name": "Concourse Level Slab",
+    "nameHindi": "कॉन्कोर्स स्तर स्लैब",
+    "category": "Structural",
+    "confidence": "Verified",
+    "source": "WTC 2022 Fig 15",
+    "levelId": "concourse",
+    "levelName": "Concourse Level (RL +209.84)",
+    "coordinates": { "x": 0.0, "y": -10.16, "z": -15.0 },
+    "depthBelowGround": 10.16,
+    "rl": 209.84,
+    "description": "Suspended RC floor slab carrying passenger ticketing concourse, AFC fare gates, customer service booths, and egress stairwell/lift openings.",
+    "specifications": {
+      "Floor Elevation": "+209.84 m RL (Depth 10.16 m)",
+      "Slab Thickness": "0.40 m typical suspended slab",
+      "Live Load Capacity": "5.0 kN/m² (Transit passenger crowd rating)"
+    },
+    "inspectionProtocol": [
+      "Inspect floor tile joint grouting around stairwell void perimeter",
+      "Check deflection sensors on central suspended beam spans",
+      "Inspect edge trim around elevator shaft penetrations"
+    ]
+  },
+  {
+    "id": "comp-rc-columns",
+    "name": "Reinforced Concrete Grid Columns",
+    "nameHindi": "प्रबलित कंक्रीट कॉलम",
+    "category": "Structural",
+    "confidence": "Verified",
+    "source": "WTC 2022 Fig 15 structural grid",
+    "levelId": "concourse",
+    "levelName": "Internal Grid C",
+    "coordinates": { "x": -0.5, "y": -10.16, "z": -10.0 },
+    "depthBelowGround": 10.16,
+    "rl": 209.84,
+    "description": "Heavy circular RC columns spaced along longitudinal structural Grid C at 10m centers, transmitting vertical overburden and floor loads directly to the base foundation slab.",
+    "specifications": {
+      "Column Diameter": "0.90 m (Radius 0.45 m)",
+      "Longitudinal Spacing": "10.00 m on center (-90m to +90m)",
+      "Vertical Envelope": "Continuous 28m height across all 4 levels",
+      "Reinforcement": "High-yield Fe500D rebar with spiral containment ties"
+    },
+    "inspectionProtocol": [
+      "Inspect column base collars for shear microcracks",
+      "Check vertical plumbness tolerance (limit <= 1:500)",
+      "Examine Emergency Stop Plunger (ESP) mounting brackets and conduit earthing"
+    ]
+  },
+  {
+    "id": "comp-upper-tbm-tunnel",
+    "name": "Upper Bored TBM Running Tunnel",
+    "nameHindi": "ऊपरी टीबीएम बोर सुरंग",
+    "category": "Track & Tunnel",
+    "confidence": "Verified",
+    "source": "Gall Zeidler Consultants DC-05 project sheet",
+    "levelId": "upper_platform",
+    "levelName": "Upper Line Tunnel",
+    "coordinates": { "x": 3.0, "y": -17.4, "z": 45.0 },
+    "depthBelowGround": 17.4,
+    "rl": 202.6,
+    "description": "Circular bored running tunnel excavated by Earth Pressure Balance (EPB) TBM, accommodating the northbound track toward Janakpuri West.",
+    "specifications": {
+      "Bored Outer Diameter": "6.35 m (Ø6350 mm)",
+      "Finished Inner Diameter": "5.80 m (Ø5800 mm)",
+      "Lining Type": "Universal tapered precast concrete segmental rings (5+1 key)",
+      "Track Rail Level": "+202.60 m RL"
+    },
+    "inspectionProtocol": [
+      "Measure tunnel ring ovalization / diametrical convergence (tolerance <= 15 mm)",
+      "Check segment radial joint bolts for specified torque",
+      "Inspect segment EPDM rubber gaskets for water ingress"
+    ]
+  },
+  {
+    "id": "comp-lower-tbm-tunnel",
+    "name": "Deep Lower Bored TBM Running Tunnel",
+    "nameHindi": "गहरी निचली टीबीएम बोर सुरंग",
+    "category": "Track & Tunnel",
+    "confidence": "Verified",
+    "source": "Gall Zeidler Consultants DC-05 sheet & WTC Fig 15",
+    "levelId": "lower_platform",
+    "levelName": "Deep Stacked Lower Line",
+    "coordinates": { "x": 3.0, "y": -32.1, "z": 45.0 },
+    "depthBelowGround": 32.1,
+    "rl": 187.9,
+    "description": "Deep lower bored running tunnel stacked vertically beneath the upper tunnel at 32.10m depth, bored through massive fresh Delhi quartzite bedrock.",
+    "specifications": {
+      "Rail Level": "+187.90 m RL (32.10 m below ground)",
+      "Vertical Clearance from Upper Line": "14.70 m (Rail-to-Rail differential)",
+      "Confining Rock": "Fresh quartzite bedrock (UCS > 80 MPa)",
+      "Hydrostatic Head": "Approx. 2.7 bar static groundwater pressure"
+    },
+    "inspectionProtocol": [
+      "Inspect invert segment grout injection ports for seepage under high hydrostatic head",
+      "Check convergence monitoring optical prism targets",
+      "Inspect track drainage sump collector channel"
+    ],
+    "safetyNotice": "Vertical gap conflict notice: Text states gap < 6.35m, but cross-section drawings show 14.7m rail difference. Tagged provisional pending DMRC author verification."
+  },
+  {
+    "id": "comp-natm-crosspassage",
+    "name": "NATM Mined Cross-Passage (CP-01)",
+    "nameHindi": "एनएटीएम क्रॉस-पैसेज",
+    "category": "Track & Tunnel",
+    "confidence": "Verified",
+    "source": "Gall Zeidler Consultants DC-05 project sheet",
+    "levelId": "lower_platform",
+    "levelName": "Tunnel Inter-connection",
+    "coordinates": { "x": 5.5, "y": -32.1, "z": 35.0 },
+    "depthBelowGround": 32.1,
+    "rl": 187.9,
+    "description": "Mined cross-passage connecting stacked running tunnels for emergency egress and maintenance bypass, excavated using New Austrian Tunnelling Method (NATM) with steel ribs and shotcrete.",
+    "specifications": {
+      "Outer Profile Diameter": "4.10 m",
+      "Primary Lining": "200 mm fibre-reinforced shotcrete + lattice girders",
+      "Secondary Lining": "300 mm cast-in-place waterproof RC with PVC membrane",
+      "Fire Separation Doors": "Class 2-hour rated sliding fire blast doors"
+    },
+    "inspectionProtocol": [
+      "Test emergency fire door closure speed and positive latching",
+      "Inspect pressure relief dampers and pressurization fan intakes",
+      "Check junction waterproofing collars at TBM ring break-in and break-out openings"
+    ]
+  },
+  {
+    "id": "comp-old-sewer",
+    "name": "Historical Heritage Brick Sewer",
+    "nameHindi": "ऐतिहासिक ईंट सीवर",
+    "category": "Geotechnical",
+    "confidence": "Provisional",
+    "source": "WTC 2022 paper text (~10m depth crossing)",
+    "levelId": "concourse",
+    "levelName": "Subsurface Utility Zone",
+    "coordinates": { "x": 0.0, "y": -10.0, "z": -102.0 },
+    "depthBelowGround": 10.0,
+    "rl": 210.0,
+    "description": "Century-old British-era arch brick masonry sewer crossing directly adjacent to the station boundary. High vulnerability to settlement, vibration, and groundwater drawdown during excavation.",
+    "specifications": {
+      "Outer Diameter": "1.80 m circular masonry barrel",
+      "Depth Below Surface": "Approx. 10.00 m (within weathered quartzite zone)",
+      "Protection Measure": "Compaction grouting and real-time hydrostatic tilt sensors"
+    },
+    "inspectionProtocol": [
+      "Verify automated hydrostatic levelling cells (HLC) for settlement (< 5 mm trigger)",
+      "Inspect CCTV sewer survey logs for joint separation or mortar washout",
+      "Check vibration seismograph velocity (< 5 mm/s PPV threshold)"
+    ]
+  },
+  {
+    "id": "comp-groundwater-strata",
+    "name": "Hydrogeological Water Table & Bedrock Interface",
+    "nameHindi": "भूजल स्तर और चट्टान इंटरफ़ेस",
+    "category": "Geotechnical",
+    "confidence": "Verified",
+    "source": "WTC 2022 paper geotechnical summary",
+    "levelId": "ground",
+    "levelName": "Subsurface Strata",
+    "coordinates": { "x": -4.0, "y": -5.5, "z": 0.0 },
+    "depthBelowGround": 5.5,
+    "rl": 214.5,
+    "description": "Static groundwater table located at 5.0 to 6.0m depth, transitioning from loose sandy silt (0-4.5m) to weathered quartzite (4.5-21.5m) and hard bedrock below 21.5m.",
+    "specifications": {
+      "Water Table Level": "+214.50 m RL (5.5m depth)",
+      "Stratum 1 (0 - 4.5m)": "Sandy silt overburden (N = 8 - 15)",
+      "Stratum 2 (4.5 - 21.5m)": "Moderately weathered fractured quartzite",
+      "Stratum 3 (> 21.5m)": "Fresh hard quartzite bedrock (UCS 80 - 140 MPa)"
+    },
+    "inspectionProtocol": [
+      "Check vibrating wire piezometers for seasonal water table fluctuation",
+      "Inspect recharge well injection pressures near sensitive heritage foundations",
+      "Sample water for sulfate and chloride concentrations (corrosion risk to concrete)"
+    ]
+  },
+  {
+    "id": "comp-afc-gates",
+    "name": "Automatic Fare Collection (AFC) Turnstiles",
+    "nameHindi": "स्वचालित किराया संग्रह (एएफसी) गेट",
+    "category": "Transit Systems",
+    "confidence": "Assumed",
+    "source": "Standard DMRC Phase IV operational equipment",
+    "levelId": "concourse",
+    "levelName": "Concourse Ticketing Barrier",
+    "coordinates": { "x": 0.0, "y": -10.16, "z": -20.0 },
+    "depthBelowGround": 10.16,
+    "rl": 209.84,
+    "description": "High-throughput bi-directional turnstile gate array separating paid and unpaid concourse zones. Equipped with contactless RFID readers, QR optical scanners, and rapid motorized acrylic flaps.",
+    "specifications": {
+      "Gate Array": "7 Pedestals / 6 Passenger Lanes",
+      "Throughput Capacity": "45 passengers per minute per lane",
+      "Card Validator": "ISO/IEC 14443 Type A/B Contactless (NCMC & DMRC Smart Card)",
+      "Emergency Fail-Safe": "Auto-retract to wide open on fire alarm signal"
+    },
+    "inspectionProtocol": [
+      "Test emergency fire alarm interface flap auto-open fail-safe",
+      "Verify optical intrusion sensors for tailgating detection",
+      "Inspect card reader transaction latency (< 300 ms response)"
+    ]
+  },
+  {
+    "id": "comp-tvm-kiosk",
+    "name": "Ticket Vending Machine (TVM) Kiosk Array",
+    "nameHindi": "टिकट वेंडिंग मशीन (टीवीएम)",
+    "category": "Transit Systems",
+    "confidence": "Assumed",
+    "source": "Standard DMRC Phase IV concourse equipment",
+    "levelId": "concourse",
+    "levelName": "West Concourse Wall",
+    "coordinates": { "x": -5.3, "y": -10.16, "z": -30.0 },
+    "depthBelowGround": 10.16,
+    "rl": 209.84,
+    "description": "Interactive self-service kiosks along the concourse west wall for purchasing QR journey tokens, checking smart card balances, and instant UPI/cash card top-up.",
+    "specifications": {
+      "Machine Count": "4 units spaced at 3.5m intervals",
+      "Display": "19-inch sunlight-readable vandal-resistant touchscreen",
+      "Payment Options": "UPI Dynamic QR, Debit/Credit Card, Banknotes, Coins",
+      "Network Protocol": "Encrypted Ethernet link to Station Computer (SC)"
+    },
+    "inspectionProtocol": [
+      "Verify touch accuracy and touchscreen calibration",
+      "Check banknote feeder acceptance and coin hopper capacity",
+      "Inspect uninterruptible power supply (UPS) 30-minute backup battery"
+    ]
+  },
+  {
+    "id": "comp-psd-system",
+    "name": "Full-Height Platform Screen Doors (PSD)",
+    "nameHindi": "प्लेटफॉर्म स्क्रीन दरवाजे (पीएसडी)",
+    "category": "Life Safety",
+    "confidence": "Assumed",
+    "source": "Standard DMRC Phase IV underground platform design",
+    "levelId": "upper_platform",
+    "levelName": "Platform Track Interface",
+    "coordinates": { "x": 0.2, "y": -16.31, "z": 0.0 },
+    "depthBelowGround": 16.31,
+    "rl": 203.69,
+    "description": "Full-height tempered safety glass barrier wall isolating the air-conditioned passenger platform from the train tunnel. Enhances passenger life safety, reduces piston wind air drag, and saves HVAC energy.",
+    "specifications": {
+      "System Height": "2.40 m full-height enclosure with header box",
+      "Length": "140 m platform length",
+      "Glass Rating": "12 mm toughened laminated safety glass",
+      "Interlock": "CBTC GoA2/GoA4 signaling drive interlock (SIL 4 safety)"
+    },
+    "inspectionProtocol": [
+      "Verify door synchronization with train docking alignment tolerance (+/- 300 mm)",
+      "Test manual emergency breakout push handle from track side",
+      "Inspect obstruction detection sensitivity (stops and reopens on 10 mm object)"
+    ]
+  },
+  {
+    "id": "comp-pids-display",
+    "name": "Passenger Information Display System (PIDS)",
+    "nameHindi": "यात्री सूचना प्रदर्शन प्रणाली (पीआईडीएस)",
+    "category": "Transit Systems",
+    "confidence": "Assumed",
+    "source": "DMRC Phase IV underground PIDS standard",
+    "levelId": "upper_platform",
+    "levelName": "Overhead Platform Ceiling",
+    "coordinates": { "x": -2.0, "y": -16.31, "z": -20.0 },
+    "depthBelowGround": 16.31,
+    "rl": 203.69,
+    "description": "Dual-sided suspended electronic LED matrix displays providing real-time train ETA countdowns, destination announcements, and emergency broadcast alerts.",
+    "specifications": {
+      "Display Technology": "Full-color P4 SMD LED Matrix (Amber / Green / Red)",
+      "Dimensions": "1.60 m wide x 0.45 m high",
+      "Update Rate": "1 Hz live telemetry feed from Centralized OCC",
+      "Audio Sync": "Synchronized with station Public Address (PA) speakers"
+    },
+    "inspectionProtocol": [
+      "Check LED module pixel failure rate (zero dead pixels in text area)",
+      "Test emergency message override latency (< 1 second)",
+      "Verify structural suspension safety wire ropes and vibration dampers"
+    ]
+  },
+  {
+    "id": "comp-uic60-track",
+    "name": "UIC 60 Ballastless Slab Track",
+    "nameHindi": "यूआईसी 60 गिट्टी रहित ट्रैक",
+    "category": "Track & Tunnel",
+    "confidence": "Verified",
+    "source": "Sadar Bazar Tunnel Data & Measurements doc",
+    "levelId": "upper_platform",
+    "levelName": "Track Bed Plinth",
+    "coordinates": { "x": 3.0, "y": -17.4, "z": 0.0 },
+    "depthBelowGround": 17.4,
+    "rl": 202.6,
+    "description": "Continuously welded UIC 60 (60 kg/m) head-hardened steel rails anchored into cast-in-place concrete plinths using elastic rail fastenings with elastomeric vibration damping pads.",
+    "specifications": {
+      "Rail Section": "UIC 60 (1080 grade Head-Hardened rail)",
+      "Gauge": "1435 mm Standard Gauge",
+      "Fastening System": "Vossloh / Pandrol elastic spring clips with rubber pads",
+      "Track Offset": "1.885 m from tunnel centerline to track center"
+    },
+    "inspectionProtocol": [
+      "Measure track gauge using calibrated digital gauge trolley (1435 +3/-1 mm)",
+      "Inspect rail top profile for corrugation or rolling contact fatigue (RCF)",
+      "Verify clip clamping torque and insulating toe bushing integrity"
+    ]
+  },
+  {
+    "id": "comp-traction-rail",
+    "name": "Third Rail / Traction Power System",
+    "nameHindi": "कर्षण विद्युत प्रणाली (तीसरी रेल)",
+    "category": "Track & Tunnel",
+    "confidence": "Verified",
+    "source": "Standard DMRC underground rolling stock electrification",
+    "levelId": "upper_platform",
+    "levelName": "Trackway Power Rail",
+    "coordinates": { "x": 4.45, "y": -17.4, "z": 0.0 },
+    "depthBelowGround": 17.4,
+    "rl": 202.6,
+    "description": "Bottom-contact traction conductor rail mounted on fiberglass insulating brackets with high-visibility yellow protective shroud, delivering DC propulsion power to trains.",
+    "specifications": {
+      "Voltage": "750 V DC (or 25 kV AC overhead catenary depending on rolling stock spec)",
+      "Conductor Material": "Stainless steel-capped aluminium composite rail",
+      "Safety Shroud": "UV-resistant glass-reinforced polyester yellow cover",
+      "Sectionalizing": "Motorized track disconnect switches linked to SCADA"
+    },
+    "inspectionProtocol": [
+      "Measure electrical clearance between live rail and rolling stock dynamic envelope",
+      "Inspect insulator brackets for flashover tracking or dust contamination",
+      "Test emergency traction power trip loop from Station Control Room"
+    ],
+    "safetyNotice": "HAZARD: 750V DC live voltage. Work strictly under Permit to Work (PTW) with confirmed earthing."
+  },
+  {
+    "id": "comp-esp-box",
+    "name": "Emergency Stop Plunger (ESP) Box",
+    "nameHindi": "आपातकालीन स्टॉप प्लंजर (ईएसपी)",
+    "category": "Life Safety",
+    "confidence": "Verified",
+    "source": "DMRC Underground Life Safety Manual",
+    "levelId": "upper_platform",
+    "levelName": "Structural Column C",
+    "coordinates": { "x": -0.5, "y": -16.31, "z": -10.0 },
+    "depthBelowGround": 16.31,
+    "rl": 203.69,
+    "description": "High-visibility red push-button station mounted on platform columns. In the event of a passenger on the trackway or docking anomaly, pressing the ESP instantly removes traction power and commands emergency train stop.",
+    "specifications": {
+      "Enclosure": "IP65 die-cast aluminium with tamper-evident seal and glass flap",
+      "Contact Rating": "Dual positive-break SIL 4 safety circuits",
+      "Response Time": "< 150 ms to traction breaker trip and ATS signal red",
+      "Location": "Mounted at 1.4m height on platform columns at 20m intervals"
+    },
+    "inspectionProtocol": [
+      "Verify unbroken tamper seal and mechanical return spring tension",
+      "Test signal feedback verification lamp on Station Control Room mimic panel",
+      "Confirm warning buzzer sounding on OCC controller console upon activation"
+    ],
+    "safetyNotice": "Operational use strictly restricted to life-safety emergency. Unauthorized activation is a punishable offense."
+  },
+  {
+    "id": "comp-staircases",
+    "name": "High-Capacity Multi-Level Egress Staircases",
+    "nameHindi": "बहु-स्तरीय निकास सीढ़ियां",
+    "category": "Life Safety",
+    "confidence": "Assumed",
+    "source": "Standard NFPA 130 / transit egress calculation",
+    "levelId": "concourse",
+    "levelName": "Central Circulation Core",
+    "coordinates": { "x": -1.5, "y": -10.16, "z": 0.0 },
+    "depthBelowGround": 10.16,
+    "rl": 209.84,
+    "description": "Cast-in-place reinforced concrete egress flights connecting Concourse, Upper Platform, Intermediate Plant, and Lower Platform. Designed to evacuate full platform occupant load within 4 minutes under NFPA 130.",
+    "specifications": {
+      "Flight Width": "2.60 m clear width (Stair 1: Z -8 to +8)",
+      "Treads & Risers": "24 steps per flight (rise 256 mm, run 667 mm)",
+      "Treads Finish": "Light granite with 70mm yellow slip-resistant nosing strips",
+      "Handrails": "Dual-height stainless steel handrails with glass balustrade"
+    },
+    "inspectionProtocol": [
+      "Inspect step nosing slip-resistance coefficient of friction (COF > 0.6)",
+      "Verify emergency battery-backed stairwell illumination (> 50 lux at floor level)",
+      "Check handrail rigidity and continuous grasping surface"
+    ]
+  },
+  {
+    "id": "comp-elevator",
+    "name": "Glass Transit Passenger Elevator & Hoistway",
+    "nameHindi": "ग्लास पैसेंजर लिफ्ट और शाफ्ट",
+    "category": "Transit Systems",
+    "confidence": "Assumed",
+    "source": "DMRC Barrier-Free Accessibility Standard",
+    "levelId": "concourse",
+    "levelName": "Accessible Circulation Shaft",
+    "coordinates": { "x": -4.5, "y": -10.16, "z": -2.0 },
+    "depthBelowGround": 10.16,
+    "rl": 209.84,
+    "description": "Through-type panoramic glass transit elevator serving all 4 levels, providing barrier-free access for wheelchair users, elderly passengers, and emergency response teams.",
+    "specifications": {
+      "Shaft Footprint": "2.40 m x 2.40 m glass and structural steel hoistway",
+      "Cabin Dimensions": "2.00 m wide x 2.00 m deep x 2.40 m high",
+      "Rated Speed & Load": "2.8 m/s | 1600 kg (21 Persons)",
+      "Stops": "4 levels (Concourse -10.2m, Upper Plat -16.3m, Intermediate -24.5m, Lower Plat -31.0m)"
+    },
+    "inspectionProtocol": [
+      "Test fire recall switch (auto-homing to Concourse with doors open)",
+      "Inspect door safety photo-curtain infrared sensors",
+      "Verify cabin emergency intercom connectivity to Station Controller"
+    ]
+  }
+]

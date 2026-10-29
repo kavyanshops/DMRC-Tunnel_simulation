@@ -93,6 +93,13 @@ Primary source references:
     - [x] Elevator shaft AABB collision (blocks entry unless door open and approaching opening).
     - [x] Platform Screen Doors (PSD) track edge barrier on passenger platforms (stops falling onto track bed).
     - [x] Concourse Automatic Fare Collection (AFC) barrier (blocks crossing turnstile line unless tapped open).
+  - [x] High-Visibility Architectural Staircases:
+    - [x] Uncovered stairwell floor/ceiling voids so staircases and lower platforms are directly visible from concourse.
+    - [x] Polished light granite treads with high-contrast amber/yellow safety edge nosing strips (`#f59e0b`).
+    - [x] Polished stainless steel handrails and tempered safety glass balustrades.
+    - [x] Concourse floor perimeter safety balustrade around stair opening with yellow approach tactile paving.
+    - [x] Suspended illuminated stair wayfinding signage ("PLATFORM 1 & 2 ⬇ STAIRS / सीढ़ियां").
+    - [x] Dedicated overhead downlights on all 3 flights (Stair 1, Stair 2, Stair 3).
   - [x] StationInterior subsystem with authentic Delhi Metro finishes:
     - [x] Suspended acoustic baffle ceiling panels with overhead utility ducts and fire sprinkler pipes.
     - [x] Polished granite floor tile textures and tactile warning/guidance paving.
@@ -115,18 +122,31 @@ Primary source references:
   - [x] Floor slab snapping with smooth stair slope interpolation (`computeFloorHeightAt`).
   - [x] 3 physical staircases with treads, risers, ramp backing, and handrails connecting all levels.
   - [x] Glass & steel animated elevator cabin with sliding doors, call buttons, and vertical lock.
-  - [x] Vitest: 21/21 tests passing (13 training + 8 walk mode).
+  - [x] Vitest: 28/28 tests passing.
   - [x] Vite production build passing with 0 errors.
   - [x] Git commit after testing.
 
-- [ ] **M3: Component Library & Interaction System**
-  - [ ] Raycasting interaction (`[E]` key inspects highlighted objects).
-  - [ ] Interactive doors and fare gates with stateful animations.
-  - [ ] `src/data/components.json` with 15+ verified/provisional/assumed records.
-  - [ ] Searchable, filterable Component Library modal with "Show in model" link.
-  - [ ] "Explored" badge progression tracking in session state.
-  - [ ] Strict safety boundary: safety equipment inspection only (no operational switches in walk mode).
-  - [ ] Git commit after testing.
+- [x] **M3: Component Library & Interaction System (COMPLETED & VERIFIED)**
+  - [x] `src/data/components.json` with 18 verified/provisional/assumed records across 5 engineering disciplines:
+    - Structural: D-Wall, Roof Slab, Concourse Slab, RC Grid Columns
+    - Track & Tunnel: Upper TBM Tunnel, Lower TBM Tunnel, NATM Cross-Passage CP-01, UIC 60 Track Plinth, Traction Third Rail
+    - Geotechnical: Historical Heritage Brick Sewer, Hydrogeological Water Table & Quartzite Strata
+    - Transit Systems: AFC Turnstiles, TVM Kiosks, PIDS Electronic Displays, Panoramic Glass Elevator
+    - Life Safety: Full-Height PSDs, Emergency Stop Plunger (ESP), Multi-Level Egress Staircases
+  - [x] Searchable, filterable Component Library modal UI (`src/ui/ComponentLibrary.ts`):
+    - [x] Instant text search across English & Hindi names, categories, descriptions, and technical specs.
+    - [x] Category filter pills (All, Structural, Track & Tunnel, Transit Systems, Life Safety, Geotechnical).
+    - [x] Confidence filter pills (All, Verified, Provisional, Assumed).
+    - [x] "Show in 3D Model" button (navigates camera in overview or teleports player in walk mode).
+    - [x] Technical specifications expansion with inspection protocol checklists and safety notices.
+  - [x] "Explored" progression tracking:
+    - [x] Persists in `sessionStorage` (`dmrc_explored_components_v1`).
+    - [x] Real-time progress bar ("X / 18 Explored · Y%").
+    - [x] Floating badge in Walk HUD and Overview HUD ("Library [C]").
+    - [x] Inspecting any component via `[E]` in walk mode or via "Show in Model" automatically marks it explored.
+  - [x] Strict safety boundary: safety equipment inspection only (no operational switches in walk mode).
+  - [x] Unit test suite (`src/ui/__tests__/componentLibrary.test.ts`): data integrity, progression, navigation, and shortcuts.
+  - [x] Git commit after testing.
 
 - [ ] **M4: Deterministic Bird's-Eye Simulation Framework**
   - [ ] Top-down orthographic camera with pan/zoom (walk mode locked out).

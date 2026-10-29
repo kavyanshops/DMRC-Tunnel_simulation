@@ -5,6 +5,7 @@ import { TunnelBuilder } from '../scene/TunnelBuilder';
 import { CirculationBuilder } from '../scene/CirculationBuilder';
 import { StationInterior } from '../scene/StationInterior';
 import { CinematicAtmosphere } from '../scene/CinematicAtmosphere';
+import { ComponentLibrary, ComponentRecord } from '../ui/ComponentLibrary';
 import { OverviewControls } from '../controls/OverviewControls';
 import { FirstPersonControls } from '../controls/FirstPersonControls';
 import { WalkHUD } from '../controls/WalkHUD';
@@ -26,6 +27,7 @@ export class SceneManager {
   public circulationBuilder: CirculationBuilder;
   public stationInterior: StationInterior;
   public atmosphere: CinematicAtmosphere;
+  public componentLibrary: ComponentLibrary;
 
   private currentMode: AppMode = 'home';
   private isRunning: boolean = true;
@@ -88,7 +90,18 @@ export class SceneManager {
     // First-Person Controls & HUD (Milestone 2 Walk Mode)
     this.firstPersonControls = new FirstPersonControls(this.camera, canvas, this.circulationBuilder);
     this.firstPersonControls.setStationInterior(this.stationInterior);
-    this.walkHUD = new WalkHUD(this.firstPersonControls, () => this.toggleCameraView());
+
+    // Component Library (Milestone 3)
+    this.componentLibrary = new ComponentLibrary((comp) => this.navigateToComponent(comp));
+
+    this.walkHUD = new WalkHUD(this.firstPersonControls, () => this.toggleCameraView(), this.componentLibrary);
+
+    // On interact in walk mode, mark explored in component library
+    const origInteractCallback = this.firstPersonControls.onInteractCallback;
+    this.firstPersonControls.onInteractCallback = (item) => {
+      this.componentLibrary.markAsExplored(item.id);
+      if (origInteractCallback) origInteractCallback(item);
+    };
 
     // Tab key switches between Overview and First-Person Walk modes
     window.addEventListener('keydown', (e) => {
@@ -192,6 +205,37 @@ export class SceneManager {
 
   public toggleCameraView() {
     this.setCameraView(this.cameraViewMode === 'overview' ? 'walk' : 'overview');
+  }
+
+  public navigateToComponent(comp: ComponentRecord) {
+    if (this.currentMode === 'home') {
+      this.setMode('explorer');
+    }
+
+    if (this.cameraViewMode === 'walk') {
+      if (comp.levelId && ['concourse', 'upper_platform', 'intermediate', 'lower_platform', 'ground'].includes(comp.levelId)) {
+        this.firstPersonControls.teleportToLevel(comp.levelId);
+      }
+      const target = new THREE.Vector3(comp.coordinates.x, comp.coordinates.y, comp.coordinates.z);
+      let spawnX = target.x;
+      let spawnZ = target.z - 2.5;
+      if (spawnX < -5.4) spawnX = -4.5;
+      if (spawnX > 5.4) spawnX = 4.5;
+      if (spawnZ < -94) spawnZ = -92;
+      if (spawnZ > 94) spawnZ = 92;
+
+      this.firstPersonControls.feetPosition.set(spawnX, comp.coordinates.y, spawnZ);
+      const dx = target.x - spawnX;
+      const dz = target.z - spawnZ;
+      this.firstPersonControls.yaw = Math.atan2(-dx, -dz);
+      this.firstPersonControls.pitch = 0;
+      this.firstPersonControls.updateCameraTransform();
+      this.firstPersonControls.lock();
+    } else {
+      this.overviewControls.controls.target.set(comp.coordinates.x, comp.coordinates.y, comp.coordinates.z);
+      this.camera.position.set(comp.coordinates.x + 35, comp.coordinates.y + 16, comp.coordinates.z + 28);
+      this.overviewControls.controls.update();
+    }
   }
 
 
