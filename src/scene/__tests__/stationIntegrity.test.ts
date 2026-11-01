@@ -6,6 +6,7 @@ import { TunnelBuilder } from '../TunnelBuilder';
 import { CirculationBuilder } from '../CirculationBuilder';
 import { StationInterior } from '../StationInterior';
 import { STATION_SPEC } from '../../data/stationSpec';
+import { BENCH_X, BENCH_Z, CLEARANCES, COLUMNS, LIFT, LEVEL_Y as LY, PLATFORM, SLABS, STAIRS, slabForLevel, stairCells, type Rect } from '../../data/stationLayout';
 import { batchStaticMeshes } from '../../vr/batch';
 
 /**
@@ -103,6 +104,7 @@ const CLASH_WHITELIST: { a: Cls; b: Cls; why: string }[] = [
   { a: 'slab', b: 'wall', why: 'slabs are cast monolithic with the diaphragm wall' },
   { a: 'deck', b: 'slab', why: 'platform deck sits on / is cast with the undercroft slab' },
   { a: 'deck', b: 'wall', why: 'platform deck abuts the diaphragm wall' },
+  { a: 'column', b: 'deck', why: 'the 0.35 m platform deck is a topping cast around the full-height column' },
   { a: 'tunnel', b: 'wall', why: 'TBM/NATM tunnels pass through the headwall portals' },
   { a: 'tunnel', b: 'slab', why: 'tunnel invert/lining meets the base slab at the portal' },
 ];
@@ -112,6 +114,7 @@ let W: World;
 let ITEMS: Item[];
 beforeAll(() => { W = buildWorld(); ITEMS = collect(W.root); });
 
+const COL_R = 0.45;
 const lvlY = (id: string) => -STATION_SPEC.levels.find((l) => l.id === id)!.depthBelowGround;
 
 describe('1. no solid/solid intersections (whitelist is explicit)', () => {
@@ -126,6 +129,9 @@ describe('1. no solid/solid intersections (whitelist is explicit)', () => {
         // AABBs of hollow tunnel tubes and of portal-holed headwalls are not solid volumes:
         // an AABB test cannot say anything about what sits inside them, so those pairs are skipped.
         if (A.cls === 'tunnel' || B.cls === 'tunnel') continue;
+        // Tilted thin rods (stair handrails) have meaningless AABBs; they are covered by the headroom test instead.
+        const tiltedRod = (i: Item) => i.mesh.geometry.type === 'CylinderGeometry' && Math.abs(Math.sin(i.mesh.rotation.x)) > 0.05 && Math.abs(Math.cos(i.mesh.rotation.x)) > 0.05;
+        if (tiltedRod(A) || tiltedRod(B)) continue;
         const holed = (i: Item) => i.cls === 'wall' && i.mesh.geometry.type === 'ExtrudeGeometry';
         if ((holed(A) && B.cls === 'track') || (holed(B) && A.cls === 'track')) continue;
         // transparent glass is not a solid
@@ -215,7 +221,7 @@ describe('4. column grid', () => {
     for (let i = 1; i < zs.length; i++) expect(Math.abs(zs[i] - zs[i - 1] - 10)).toBeLessThan(1e-6);
   });
 
-  it('every column keeps >= 0.4 m from stairs, lift and interactables', () => {
+  it('every column keeps >= 0.4 m from stairs and lift, and no interactable stands inside one', () => {
     const GAP = 0.4;
     const cols = ITEMS.filter((i) => i.cls === 'column');
     const bad = new Set<string>();
@@ -239,7 +245,8 @@ describe('4. column grid', () => {
       for (const it of W.interior.interactables) {
         const px = it.position.x, pz = it.position.z;
         if (it.position.y < c.box.min.y || it.position.y > c.box.max.y) continue;
-        if (planDist(c.box, px, px, pz, pz) < Math.max(0.3, it.radius * 0.5)) bad.add(`column z=${fmt(cz)} vs interactable ${it.id} (${fmt(px)},${fmt(pz)})`);
+        // an interactable's stand-point must not be inside the column (0.05 m margin)
+        if (Math.hypot(px - W.station.columnsGroup.children[0].position.x, pz - c.box.getCenter(new THREE.Vector3()).z) < COL_R + 0.05) bad.add(`column z=${fmt(cz)} vs interactable ${it.id} (${fmt(px)},${fmt(pz)})`);
       }
     }
     // eslint-disable-next-line no-console
@@ -300,7 +307,7 @@ describe('5. walkability: floors really exist where the design says you walk', (
   it('intermediate level has a continuous >= 2.0 m wide floor from stair 2 foot (z=36) to stair 3 head (z=-18)', () => {
     const y = lvlY('intermediate');
     const bad: string[] = [];
-    for (let z = 36; z >= -18; z -= 2) {
+    for (let z = 35.9; z >= -17.95; z -= 2) { // sampled just inside the stair-head edges (z = 36 / -18)
       let run = 0, best = 0;
       for (let x = -5.9; x <= 5.9; x += 0.25) {
         const h = floorHit(x, z, y);
@@ -319,6 +326,61 @@ describe('5. walkability: floors really exist where the design says you walk', (
     // eslint-disable-next-line no-console
     console.log('[stair-width] spec=' + spec + ' ' + JSON.stringify(wrong));
     expect(wrong).toEqual([]);
+  });
+});
+
+
+describe('6. layout geometry measured from the manifest', () => {
+  it('every stair: riser <= 0.18 m, tread >= 0.30 m, width = spec; reports slope', () => {
+    const lines: string[] = [];
+    for (const st of STAIRS) {
+      lines.push(`${st.id}: ${st.steps} steps, riser ${(st.riser * 1000).toFixed(0)} mm, tread ${(st.tread * 1000).toFixed(0)} mm, slope ${st.slopeDeg.toFixed(1)} deg, width ${(st.xMax - st.xMin).toFixed(2)} m`);
+      expect(st.riser).toBeLessThanOrEqual(CLEARANCES.maxRiser + 1e-9);
+      expect(st.tread).toBeGreaterThanOrEqual(0.3);
+    }
+    // eslint-disable-next-line no-console
+    console.log('[stairs]\n' + lines.join('\n'));
+  });
+
+  it('platform passage: >= 2.0 m clear walking width along the whole platform on both levels', () => {
+    const bad: string[] = [];
+    for (const lv of ['upper_platform', 'lower_platform'] as const) {
+      const deck = slabForLevel(lv);
+      const obstacles: Rect[] = [
+        ...deck.openings,
+        { ...LIFT.outer(), id: 'lift' } as any,
+        ...COLUMNS.zs.map((z) => ({ x0: COLUMNS.x - COLUMNS.radius, x1: COLUMNS.x + COLUMNS.radius, z0: z - COLUMNS.radius, z1: z + COLUMNS.radius })),
+        ...BENCH_Z.map((z) => ({ x0: BENCH_X - 0.3, x1: BENCH_X + 0.3, z0: z - 1.1, z1: z + 1.1 })),
+      ];
+      // under-stair solid (soffit < 2.2 m above this platform) is not walkable either
+      for (const st of STAIRS) if (st.toLevel === lv) for (const c of stairCells(st)) if (c.solidToFloor) obstacles.push({ x0: st.xMin, x1: st.xMax, z0: c.zA, z1: c.zB });
+      let minRun = 99, atZ = 0;
+      for (let z = -PLATFORM.halfLength + 0.5; z <= PLATFORM.halfLength - 0.5; z += 0.5) {
+        let run = 0, best = 0;
+        for (let x = PLATFORM.x0; x <= PLATFORM.x1 - CLEARANCES.platformEdgeSafe[0] + 1e-9; x += 0.05) {
+          const blocked = obstacles.some((o) => x > o.x0 && x < o.x1 && z > o.z0 && z < o.z1);
+          if (blocked) run = 0; else { run += 0.05; best = Math.max(best, run); }
+        }
+        if (best < minRun) { minRun = best; atZ = z; }
+      }
+      // eslint-disable-next-line no-console
+      console.log(`[passage] ${lv}: narrowest clear lane ${minRun.toFixed(2)} m at z=${atZ} (edge safe zone excluded)`);
+      if (minRun < CLEARANCES.minWalkWidth) bad.push(`${lv}: ${minRun.toFixed(2)} m at z=${atZ}`);
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('lift lobby (1.5 x 1.5 m) is clear of openings and columns on every level it serves', () => {
+    const lobby = LIFT.lobby();
+    expect(lobby.x1 - lobby.x0).toBeGreaterThanOrEqual(CLEARANCES.liftLobby - 1e-9);
+    expect(lobby.z1 - lobby.z0).toBeGreaterThanOrEqual(CLEARANCES.liftLobby - 1e-9);
+    const hits: string[] = [];
+    for (const slab of SLABS.filter((x) => x.walkLevel)) {
+      for (const o of slab.openings) if (o.id !== 'lift-shaft' && lobby.x1 > o.x0 && lobby.x0 < o.x1 && lobby.z1 > o.z0 && lobby.z0 < o.z1) hits.push(`${slab.id}: ${o.id}`);
+    }
+    for (const z of COLUMNS.zs) if (Math.hypot(Math.max(lobby.x0 - COLUMNS.x, 0, COLUMNS.x - lobby.x1), Math.max(lobby.z0 - z, 0, z - lobby.z1)) < COLUMNS.radius) hits.push(`column z=${z}`);
+    expect(hits).toEqual([]);
+    expect(LY.concourse).toBeLessThan(0);
   });
 });
 

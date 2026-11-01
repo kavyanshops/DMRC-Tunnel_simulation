@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { depthToWorldY, STATION_SPEC } from '../data/stationSpec';
+import { AFC_LINE, BENCH_X, BENCH_Z, ESP, EXIT_SIGN_Z, FINISH, MAP_BOARD, NAME_SIGN_Z, PIDS, PLATFORM, platformRect, range, rectsOverlap, slabById, slabForLevel, splitRun, subtractRects, type Rect } from '../data/stationLayout';
 
 export interface StationInteractable {
   id: string;
@@ -88,7 +89,7 @@ function createFloorTileTexture(): THREE.Texture {
     for (let i = 0; i <= 512; i += 128) {
       ctx.beginPath();
       ctx.moveTo(i, 0);
-      ctx.lineTo(512, i);
+      ctx.lineTo(i, 512);
       ctx.stroke();
 
       ctx.beginPath();
@@ -101,7 +102,7 @@ function createFloorTileTexture(): THREE.Texture {
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(8, 64);
+  texture.repeat.set(1, 1); // tile scale is applied per floor piece via UVs (see StationInterior.addFloorPieces)
   return texture;
 }
 
@@ -126,7 +127,6 @@ export class StationInterior {
   // Station Dimensions
   private readonly width = STATION_SPEC.stationBox.width.value;   // 13.4m
   private readonly length = STATION_SPEC.stationBox.length.value; // 200m
-  private readonly platWidth = STATION_SPEC.assumedArchitectural.platformWidth.value; // 4.8m
   private readonly platLength = STATION_SPEC.assumedArchitectural.platformLength.value; // 140m
 
   // Animated elements
@@ -223,180 +223,72 @@ export class StationInterior {
     this.buildWayfindingSignage();
   }
 
-  /**
-   * Suspended acoustic ceiling baffle strips (realistic architectural ceiling)
-   */
+  /** Horizontal plane piece (floor finish or ceiling) with tile-scaled UVs. */
+  private addPlane(r: Rect, y: number, mat: THREE.Material, up: boolean, tile = 1.43, receive = false) {
+    const w = r.x1 - r.x0, d = r.z1 - r.z0;
+    const g = new THREE.PlaneGeometry(w, d);
+    const uv = g.attributes.uv as THREE.BufferAttribute;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, (uv.getX(i) * w) / tile, (uv.getY(i) * d) / tile);
+    const m = new THREE.Mesh(g, mat);
+    m.rotation.x = up ? -Math.PI / 2 : Math.PI / 2;
+    m.position.set((r.x0 + r.x1) / 2, y, (r.z0 + r.z1) / 2);
+    m.receiveShadow = receive;
+    this.group.add(m);
+    return m;
+  }
+
+  /** Suspended ceilings and baffles. Ceilings carry the same openings as the slab above them. */
   private buildCeilingBaffles() {
-    const baffleW = this.width - 2.0;
-
-    // 1. Concourse ceiling (under roof slab, depth 5.36m)
-    const concCeilY = depthToWorldY(5.36) - 0.02;
-    const concBack = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, this.length - 4), this.ceilingMat);
-    concBack.rotation.x = Math.PI / 2;
-    concBack.position.set(0, concCeilY, 0);
-    this.group.add(concBack);
-
-    // 2. Upper Platform ceiling (under Concourse slab, depth 10.56m) - leave open for Stair 1 and lift
-    const uplatCeilY = depthToWorldY(10.56) - 0.02;
-    // North section (Z: -98 to -9)
-    const upN = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 89), this.ceilingMat);
-    upN.rotation.x = Math.PI / 2;
-    upN.position.set(0, uplatCeilY, -53.5);
-    this.group.add(upN);
-
-    // South section (Z: 9 to 98)
-    const upS = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 89), this.ceilingMat);
-    upS.rotation.x = Math.PI / 2;
-    upS.position.set(0, uplatCeilY, 53.5);
-    this.group.add(upS);
-
-    // East side strip across central stairwell void (X: 0.2 to 5.7, Z: -9 to 9)
-    const upEast = new THREE.Mesh(new THREE.PlaneGeometry(5.5, 18), this.ceilingMat);
-    upEast.rotation.x = Math.PI / 2;
-    upEast.position.set(2.95, uplatCeilY, 0);
-    this.group.add(upEast);
-
-    // 3. Intermediate ceiling (under Upper track, depth 18.96m) - leave open for Stair 2
-    const intCeilY = depthToWorldY(18.96) - 0.02;
-    const intN = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 114), this.ceilingMat);
-    intN.rotation.x = Math.PI / 2;
-    intN.position.set(0, intCeilY, -41);
-    this.group.add(intN);
-
-    const intS = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 61), this.ceilingMat);
-    intS.rotation.x = Math.PI / 2;
-    intS.position.set(0, intCeilY, 67.5);
-    this.group.add(intS);
-
-    // 4. Lower Platform ceiling (depth 24.91m) - leave open for Stair 3
-    const lpCeilY = depthToWorldY(24.91) - 0.02;
-    const lpFarN = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 63), this.ceilingMat);
-    lpFarN.rotation.x = Math.PI / 2;
-    lpFarN.position.set(0, lpCeilY, -66.5);
-    this.group.add(lpFarN);
-
-    const lpFarS = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 115), this.ceilingMat);
-    lpFarS.rotation.x = Math.PI / 2;
-    lpFarS.position.set(0, lpCeilY, 40.5);
-    this.group.add(lpFarS);
-
-    // Acoustic baffles and ductwork
-    [concCeilY, uplatCeilY, intCeilY, lpCeilY].forEach((ceilY) => {
-      for (let z = -90; z <= 90; z += 10) {
-        // Skip baffles directly inside stairwell voids
-        if (Math.abs(z) < 9 && ceilY === uplatCeilY) continue;
-        if (z >= 17 && z <= 37 && ceilY === intCeilY) continue;
-        if (z >= -35 && z <= -17 && ceilY === lpCeilY) continue;
-
-        const baffle = new THREE.Mesh(new THREE.BoxGeometry(baffleW, 0.2, 0.08), this.stainlessMat);
-        baffle.position.set(0, ceilY - 0.12, z);
+    const halfW = this.width / 2 - 1.0; // 5.7
+    const zEnd = this.length / 2 - 2;   // 98
+    const roofBottom = depthToWorldY(5.36);
+    const ceilings: { y: number; openings: Rect[] }[] = [
+      { y: roofBottom - 0.02, openings: [] },
+      { y: depthToWorldY(10.56) - 0.02, openings: slabById('concourse').openings },
+      { y: depthToWorldY(18.96) - 0.02, openings: slabById('upper_undercroft').openings },
+      { y: depthToWorldY(24.91) - 0.02, openings: slabById('intermediate').openings },
+    ];
+    ceilings.forEach((c) => {
+      subtractRects({ x0: -halfW, x1: halfW, z0: -zEnd, z1: zEnd }, c.openings).forEach((piece) => this.addPlane(piece, c.y, this.ceilingMat, false));
+      // Acoustic baffles sit mid-bay (between column rows), skipped where an opening is
+      for (const z of range(-95, 95, 10)) {
+        const box: Rect = { x0: -halfW, x1: halfW, z0: z - 0.04, z1: z + 0.04 };
+        if (c.openings.some((o) => rectsOverlap(o, box))) continue;
+        const baffle = new THREE.Mesh(new THREE.BoxGeometry(halfW * 2, 0.2, 0.08), this.stainlessMat);
+        baffle.position.set(0, c.y - 0.12, z);
         this.group.add(baffle);
       }
     });
   }
 
-  /**
-   * Polished granite floor overlays and tactile guidance paths
-   */
+  /** Finished floors laid 5 mm above each walking slab / deck, with the same openings as the slab. */
   private buildGraniteFloors() {
-    const baffleW = this.width - 2.0;
+    const concourse = slabForLevel('concourse');
+    const intermediate = slabForLevel('intermediate');
+    const wide: Rect = { x0: FINISH.x0, x1: FINISH.x1, z0: -FINISH.zEnd, z1: FINISH.zEnd };
+    const floors: { slab: typeof concourse; rect: Rect }[] = [
+      { slab: concourse, rect: wide },
+      { slab: slabForLevel('upper_platform'), rect: platformRect() },
+      { slab: intermediate, rect: wide },
+      { slab: slabForLevel('lower_platform'), rect: platformRect() },
+    ];
+    floors.forEach(({ slab, rect }) => {
+      subtractRects(rect, slab.openings).forEach((piece) => this.addPlane(piece, slab.top + 0.005, this.floorMat, true, 1.43, true));
+    });
 
-    // 1. Concourse Floor (Depth 10.16m): Partitioned so Stair 1 and elevator openings are visible!
-    const concY = depthToWorldY(10.16) + 0.005;
+    // Concourse tactile guide path from the north entrance to the AFC aisle (stops short of the gate line)
+    const guide = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.015, 33), this.tactileMat);
+    guide.position.set(0.45, concourse.top + 0.008, -50 + 16.5);
+    this.group.add(guide);
 
-    // North slab (Z: -98 to -9)
-    const concNorthFloor = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 89), this.floorMat);
-    concNorthFloor.rotation.x = -Math.PI / 2;
-    concNorthFloor.position.set(0, concY, -53.5);
-    concNorthFloor.receiveShadow = true;
-    this.group.add(concNorthFloor);
-
-    // South slab (Z: 9 to 98)
-    const concSouthFloor = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 89), this.floorMat);
-    concSouthFloor.rotation.x = -Math.PI / 2;
-    concSouthFloor.position.set(0, concY, 53.5);
-    concSouthFloor.receiveShadow = true;
-    this.group.add(concSouthFloor);
-
-    // East walkway corridor past central stairwell (X: 0.1 to 5.7, Z: -9 to 9)
-    const concEastFloor = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 18), this.floorMat);
-    concEastFloor.rotation.x = -Math.PI / 2;
-    concEastFloor.position.set(2.9, concY, 0);
-    concEastFloor.receiveShadow = true;
-    this.group.add(concEastFloor);
-
-    // West walkway corridor past elevator (X: -5.7 to -4.8, Z: -9 to 9)
-    const concWestFloor = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 18), this.floorMat);
-    concWestFloor.rotation.x = -Math.PI / 2;
-    concWestFloor.position.set(-5.25, concY, 0);
-    concWestFloor.receiveShadow = true;
-    this.group.add(concWestFloor);
-
-    // Concourse central tactile directional path leading to ticket gates
-    const concTactile = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.015, 60), this.tactileMat);
-    concTactile.position.set(0, concY + 0.008, -20);
-    this.group.add(concTactile);
-
-    // 2. Upper Platform Floor (Depth 16.31m)
-    const upY = depthToWorldY(16.31) + 0.005;
-    // North section (Z: -98 to 17)
-    const upNorthFloor = new THREE.Mesh(new THREE.PlaneGeometry(this.platWidth, 115), this.floorMat);
-    upNorthFloor.rotation.x = -Math.PI / 2;
-    upNorthFloor.position.set(-2.2, upY, -40.5);
-    upNorthFloor.receiveShadow = true;
-    this.group.add(upNorthFloor);
-
-    // South section (Z: 37 to 98)
-    const upSouthFloor = new THREE.Mesh(new THREE.PlaneGeometry(this.platWidth, 61), this.floorMat);
-    upSouthFloor.rotation.x = -Math.PI / 2;
-    upSouthFloor.position.set(-2.2, upY, 67.5);
-    upSouthFloor.receiveShadow = true;
-    this.group.add(upSouthFloor);
-
-    // Tactile strips along Upper Platform edge
-    const upTactile = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.015, this.platLength), this.tactileMat);
-    upTactile.position.set(0.0, upY + 0.008, 0);
-    this.group.add(upTactile);
-
-    const upYellow = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.016, this.platLength), this.tactileMat);
-    upYellow.position.set(0.2, upY + 0.008, 0);
-    this.group.add(upYellow);
-
-    // 3. Intermediate Plant Floor (Depth 24.46m)
-    const intY = depthToWorldY(24.46) + 0.005;
-    const intFarNFloor = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 63), this.floorMat);
-    intFarNFloor.rotation.x = -Math.PI / 2;
-    intFarNFloor.position.set(0, intY, -66.5);
-    intFarNFloor.receiveShadow = true;
-    this.group.add(intFarNFloor);
-
-    const intFarSFloor = new THREE.Mesh(new THREE.PlaneGeometry(baffleW, 61), this.floorMat);
-    intFarSFloor.rotation.x = -Math.PI / 2;
-    intFarSFloor.position.set(0, intY, 67.5);
-    intFarSFloor.receiveShadow = true;
-    this.group.add(intFarSFloor);
-
-    const intMidFloor = new THREE.Mesh(new THREE.PlaneGeometry(5.6, 72), this.floorMat);
-    intMidFloor.rotation.x = -Math.PI / 2;
-    intMidFloor.position.set(2.9, intY, 0);
-    intMidFloor.receiveShadow = true;
-    this.group.add(intMidFloor);
-
-    // 4. Lower Platform Floor (Depth 31.01m)
-    const lpY = depthToWorldY(31.01) + 0.005;
-    const lpFloor = new THREE.Mesh(new THREE.PlaneGeometry(this.platWidth, this.platLength), this.floorMat);
-    lpFloor.rotation.x = -Math.PI / 2;
-    lpFloor.position.set(-2.2, lpY, 0);
-    lpFloor.receiveShadow = true;
-    this.group.add(lpFloor);
-
-    const lpTactile = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.015, this.platLength), this.tactileMat);
-    lpTactile.position.set(0.0, lpY + 0.008, 0);
-    this.group.add(lpTactile);
-
-    const lpYellow = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.016, this.platLength), this.tactileMat);
-    lpYellow.position.set(0.2, lpY + 0.008, 0);
-    this.group.add(lpYellow);
+    // ONE tactile strip per platform edge: 0.4 m wide, flush at the platform edge (X -0.2 .. 0.2)
+    ['upper_platform', 'lower_platform'].forEach((lv) => {
+      const deck = slabForLevel(lv as 'upper_platform');
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(PLATFORM.edgeTactile.width, 0.015, PLATFORM.halfLength * 2), this.tactileMat);
+      strip.name = `${lv} edge tactile`;
+      strip.position.set((PLATFORM.edgeTactile.x0 + PLATFORM.edgeTactile.x1) / 2, deck.top + 0.008, 0);
+      this.group.add(strip);
+    });
   }
 
   /**
@@ -446,15 +338,20 @@ export class StationInterior {
 
     const ledMat = new THREE.MeshBasicMaterial({ color: 0xf8fafc });
 
-    levels.forEach((lvl) => {
-      // Long linear glowing LED fixtures running longitudinally
+    const ceilOpenings: Rect[][] = [
+      [],
+      slabById('concourse').openings,
+      slabById('upper_undercroft').openings,
+      slabById('intermediate').openings,
+    ];
+    levels.forEach((lvl, li) => {
+      // Long linear glowing LED fixtures running longitudinally, broken at stair / lift openings
       [-2.5, 2.5].forEach((lx) => {
-        const strip = new THREE.Mesh(
-          new THREE.BoxGeometry(0.25, 0.05, this.length - 8),
-          ledMat
-        );
-        strip.position.set(lx, lvl.ceilY - 0.1, 0);
-        this.group.add(strip);
+        splitRun(lx, -(this.length / 2 - 4), this.length / 2 - 4, ceilOpenings[li], 0.125).forEach(([z0, z1]) => {
+          const strip = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.05, z1 - z0), ledMat);
+          strip.position.set(lx, lvl.ceilY - 0.1, (z0 + z1) / 2);
+          this.group.add(strip);
+        });
       });
 
       // 4 soft downlights per level spaced 45m apart (great performance on laptops!)
@@ -478,7 +375,7 @@ export class StationInterior {
     trackConfigs.forEach((tc) => {
       // Ballastless track concrete plinth
       const plinth = new THREE.Mesh(
-        new THREE.BoxGeometry(4.2, 0.3, this.platLength + 20),
+        new THREE.BoxGeometry(4.2, 0.3, this.platLength + 19.6),
         this.trackBedMat
       );
       plinth.position.set(3.0, tc.railY - 0.15, 0);
@@ -487,7 +384,7 @@ export class StationInterior {
       // Dual running rails (standard gauge 1435mm)
       [-0.717, 0.717].forEach((rOff) => {
         const rail = new THREE.Mesh(
-          new THREE.BoxGeometry(0.08, 0.16, this.platLength + 20),
+          new THREE.BoxGeometry(0.08, 0.16, this.platLength + 19.6),
           this.railMat
         );
         rail.position.set(3.0 + rOff, tc.railY + 0.08, 0);
@@ -506,7 +403,7 @@ export class StationInterior {
 
       // Third Rail (750V / traction power rail with yellow shield)
       const thirdRailCover = new THREE.Mesh(
-        new THREE.BoxGeometry(0.12, 0.14, this.platLength + 20),
+        new THREE.BoxGeometry(0.12, 0.14, this.platLength + 19.6),
         this.thirdRailMat
       );
       thirdRailCover.position.set(3.0 + 1.45, tc.railY + 0.18, 0);
@@ -514,7 +411,7 @@ export class StationInterior {
 
       // Drainage channel along track center
       const drain = new THREE.Mesh(
-        new THREE.BoxGeometry(0.4, 0.08, this.platLength + 20),
+        new THREE.BoxGeometry(0.4, 0.08, this.platLength + 19.6),
         new THREE.MeshBasicMaterial({ color: 0x09090b })
       );
       drain.position.set(3.0, tc.railY - 0.02, 0);
@@ -528,9 +425,9 @@ export class StationInterior {
   private buildConcourseFacilities() {
     const concY = depthToWorldY(10.16);
 
-    // 1. AFC Turnstile Gate Array at Z = -20
-    const gateCount = 7;
-    const gateSpacing = 0.9;
+    // 1. AFC Turnstile Gate Array (z from the layout manifest; off the column row)
+    const gateCount = AFC_LINE.gateCount;
+    const gateSpacing = AFC_LINE.spacing;
     const startX = -((gateCount - 1) * gateSpacing) / 2;
 
     for (let i = 0; i < gateCount; i++) {
@@ -541,7 +438,7 @@ export class StationInterior {
         new THREE.BoxGeometry(0.2, 1.05, 1.8),
         this.stainlessMat
       );
-      ped.position.set(gx, concY + 0.525, -20);
+      ped.position.set(gx, concY + 0.525, AFC_LINE.z);
       this.group.add(ped);
 
       // Card reader pad on top (glowing blue)
@@ -549,7 +446,7 @@ export class StationInterior {
         new THREE.BoxGeometry(0.12, 0.02, 0.18),
         this.screenGlowMat
       );
-      reader.position.set(gx, concY + 1.06, -20.6);
+      reader.position.set(gx, concY + 1.06, AFC_LINE.z - 0.6);
       this.group.add(reader);
 
       // Status indicator light (green arrow on entry side)
@@ -557,7 +454,7 @@ export class StationInterior {
         new THREE.BoxGeometry(0.1, 0.04, 0.01),
         new THREE.MeshBasicMaterial({ color: 0x22c55e })
       );
-      indicator.position.set(gx, concY + 0.9, -20.91);
+      indicator.position.set(gx, concY + 0.9, AFC_LINE.z - 0.91);
       this.group.add(indicator);
 
       // Acrylic motorized gate flap between pedestals (except end)
@@ -571,7 +468,7 @@ export class StationInterior {
             roughness: 0.1
           })
         );
-        flap.position.set(gx + gateSpacing / 2, concY + 0.65, -20);
+        flap.position.set(gx + gateSpacing / 2, concY + 0.65, AFC_LINE.z);
         this.group.add(flap);
         this.fareGateFlaps.push(flap);
       }
@@ -582,7 +479,7 @@ export class StationInterior {
       id: 'faregate-concourse',
       name: 'AFC Smart Card Fare Gates',
       actionText: 'Tap Smart Card / Open Gate',
-      position: new THREE.Vector3(0, concY + 1.0, -21.2),
+      position: new THREE.Vector3(0, concY + 1.0, AFC_LINE.z - 1.2),
       radius: 2.2,
       levelId: 'concourse',
       type: 'faregate',
@@ -727,12 +624,12 @@ export class StationInterior {
       }
 
       // 2. Hanging PIDS (Passenger Information Display System)
-      [-30, 20].forEach((pz) => {
+      PIDS.zs.forEach((pz) => {
         const pids = new THREE.Mesh(
           new THREE.BoxGeometry(1.6, 0.45, 0.12),
           new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 })
         );
-        pids.position.set(-2.0, floorY + 2.8, pz);
+        pids.position.set(PIDS.x, floorY + 2.8, pz);
         this.group.add(pids);
 
         // LED Display face (Amber / Green text)
@@ -740,7 +637,7 @@ export class StationInterior {
           new THREE.BoxGeometry(1.5, 0.35, 0.02),
           new THREE.MeshBasicMaterial({ color: 0xf59e0b })
         );
-        pidsDisplay.position.set(-2.0, floorY + 2.8, pz + 0.07);
+        pidsDisplay.position.set(PIDS.x, floorY + 2.8, pz + 0.07);
         this.group.add(pidsDisplay);
 
         // Hanging suspension rods
@@ -749,7 +646,7 @@ export class StationInterior {
             new THREE.CylinderGeometry(0.02, 0.02, 1.2, 8),
             this.stainlessMat
           );
-          rod.position.set(-2.0 + rx, floorY + 3.4, pz);
+          rod.position.set(PIDS.x + rx, floorY + 3.4, pz);
           this.group.add(rod);
         });
 
@@ -757,7 +654,7 @@ export class StationInterior {
           id: `pids-${pl.id}-${pz}`,
           name: `PIDS Train Display (${pl.name})`,
           actionText: 'Inspect Live Train Schedule',
-          position: new THREE.Vector3(-2.0, floorY + 1.6, pz),
+          position: new THREE.Vector3(PIDS.x, floorY + 1.6, pz),
           radius: 3.5,
           levelId: pl.id,
           type: 'pids',
@@ -777,19 +674,19 @@ export class StationInterior {
       });
 
       // 3. Platform Stainless Steel Benches
-      [-40, 0, 40].forEach((bz) => {
+      BENCH_Z.forEach((bz) => {
         const bench = new THREE.Mesh(
-          new THREE.BoxGeometry(2.2, 0.45, 0.6),
+          new THREE.BoxGeometry(0.6, 0.45, 2.2),
           this.stainlessMat
         );
-        bench.position.set(-3.6, floorY + 0.225, bz);
+        bench.position.set(BENCH_X, floorY + 0.225, bz);
         this.group.add(bench);
 
         this.interactables.push({
           id: `bench-${pl.id}-${bz}`,
           name: 'Platform Transit Bench',
           actionText: 'Sit / Rest on Platform Bench',
-          position: new THREE.Vector3(-3.6, floorY + 0.8, bz),
+          position: new THREE.Vector3(BENCH_X, floorY + 0.8, bz),
           radius: 1.8,
           levelId: pl.id,
           type: 'bench',
@@ -809,17 +706,17 @@ export class StationInterior {
 
       // 4. Emergency Stop Plunger (ESP) on structural column
       const espBox = new THREE.Mesh(
-        new THREE.BoxGeometry(0.18, 0.28, 0.12),
+        new THREE.BoxGeometry(0.12, 0.28, 0.18),
         this.emergencyRedMat
       );
-      espBox.position.set(-0.5, floorY + 1.4, -10.46);
+      espBox.position.set(ESP.boxX, floorY + 1.4, ESP.z);
       this.group.add(espBox);
 
       this.interactables.push({
         id: `esp-${pl.id}`,
         name: 'Emergency Stop Plunger (ESP)',
         actionText: 'Emergency Stop Plunger (ESP)',
-        position: new THREE.Vector3(-0.5, floorY + 1.4, -9.5),
+        position: new THREE.Vector3(ESP.boxX, floorY + 1.4, ESP.z),
         radius: 2.0,
         levelId: pl.id,
         type: 'emergency_sos',
@@ -900,7 +797,7 @@ export class StationInterior {
     const signTex = createSignTexture('SADAR BAZAR', 'सदर बाज़ार', '#0284c7', '#ffffff', '#38bdf8');
     const signMat = new THREE.MeshBasicMaterial({ map: signTex, side: THREE.DoubleSide });
 
-    [-50, 50].forEach((sz) => {
+    NAME_SIGN_Z.forEach((sz) => {
       const nameSign = new THREE.Mesh(
         new THREE.BoxGeometry(5.5, 1.2, 0.08),
         signMat
@@ -925,7 +822,7 @@ export class StationInterior {
       new THREE.BoxGeometry(3.5, 0.8, 0.06),
       new THREE.MeshBasicMaterial({ map: exitTex, side: THREE.DoubleSide })
     );
-    exitSign.position.set(0, concY + 3.0, -10);
+    exitSign.position.set(0, concY + 3.0, EXIT_SIGN_Z);
     this.group.add(exitSign);
 
     // Interactive Map Board at Concourse
@@ -933,7 +830,7 @@ export class StationInterior {
       id: 'map-concourse',
       name: 'Delhi Metro Station & Network Map',
       actionText: 'View Delhi Metro Station Map',
-      position: new THREE.Vector3(0, concY + 1.2, -12),
+      position: new THREE.Vector3(MAP_BOARD.x, concY + 1.2, MAP_BOARD.z),
       radius: 2.8,
       levelId: 'concourse',
       type: 'map',

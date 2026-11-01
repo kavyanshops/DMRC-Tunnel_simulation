@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { STATION_SPEC, TUNNEL_LAYOUT, depthToWorldY } from '../data/stationSpec';
 import { AssumedTagMarker } from './AssumedTagMarker';
+import { COLUMNS, PLATFORM, slabById, subtractRects, type SlabSpec } from '../data/stationLayout';
 
 export class StationBuilder {
   public group: THREE.Group;
@@ -41,7 +42,6 @@ export class StationBuilder {
     this.buildFloorSlabs();
     this.buildStructuralColumns();
     this.buildPlatforms();
-    this.buildConcourseElements();
   }
 
   /**
@@ -124,117 +124,53 @@ export class StationBuilder {
     if (this.eastWallUpper) this.eastWallUpper.visible = !open;
   }
 
+  /** Builds one slab / deck from the layout manifest: pieces are generated around the derived openings. */
+  private addSlabPieces(parent: THREE.Object3D, slab: SlabSpec, mat: THREE.Material, namePrefix: string, shadow = true) {
+    const pieces = subtractRects(slab.rect, slab.openings);
+    pieces.forEach((p, i) => {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(p.x1 - p.x0, slab.thickness, p.z1 - p.z0), mat);
+      mesh.name = `${namePrefix} [${i}]`;
+      mesh.position.set((p.x0 + p.x1) / 2, slab.top - slab.thickness / 2, (p.z0 + p.z1) / 2);
+      mesh.receiveShadow = shadow;
+      parent.add(mesh);
+    });
+  }
+
   /**
-   * Builds the 5 primary horizontal floor slabs
+   * Builds the horizontal slabs. Concourse, undercroft and intermediate slabs are generated from the layout
+   * manifest with the stair and lift openings cut out (no hand-typed slab pieces).
    */
   private buildFloorSlabs() {
     const width = STATION_SPEC.stationBox.width.value; // 13.40 m
     const length = STATION_SPEC.stationBox.length.value; // 200 m
 
-    const slabMat = new THREE.MeshStandardMaterial({
-      color: 0x475569,
-      roughness: 0.75,
-      metalness: 0.15
-    });
-
-    const roofMat = new THREE.MeshStandardMaterial({
-      color: 0x1e293b,
-      roughness: 0.9
-    });
+    const slabMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.75, metalness: 0.15 });
+    const roofMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
 
     // 1. Roof Slab (Top at -4.36, Underside at -5.36 -> thickness 1.0m)
     const roofThick = STATION_SPEC.stationBox.roofSlabThickness.value;
-    const roofGeom = new THREE.BoxGeometry(width, roofThick, length);
-    const roofMesh = new THREE.Mesh(roofGeom, roofMat);
+    const roofMesh = new THREE.Mesh(new THREE.BoxGeometry(width, roofThick, length), roofMat);
     roofMesh.name = 'Roof Slab (RL +214.64 underside)';
     roofMesh.position.set(0, depthToWorldY(4.36) - roofThick / 2, 0);
     roofMesh.castShadow = true;
     this.slabsGroup.add(roofMesh);
 
-    // 2. Concourse Level Slab (RL +209.84, Depth 10.16m) with stairwell & elevator openings
-    const concDef = STATION_SPEC.levels.find(l => l.id === 'concourse')!;
-    const concY = depthToWorldY(concDef.depthBelowGround) - 0.2;
-    const concGroup = new THREE.Group();
-    concGroup.name = 'Concourse Floor Slab (RL +209.84)';
-
-    // North & South main slabs
-    const concNorth = new THREE.Mesh(new THREE.BoxGeometry(width, 0.4, 91), slabMat);
-    concNorth.position.set(0, concY, -54.5);
-    concNorth.receiveShadow = true;
-    concGroup.add(concNorth);
-
-    const concSouth = new THREE.Mesh(new THREE.BoxGeometry(width, 0.4, 91), slabMat);
-    concSouth.position.set(0, concY, 54.5);
-    concSouth.receiveShadow = true;
-    concGroup.add(concSouth);
-
-    // East corridor across the central void
-    const concEast = new THREE.Mesh(new THREE.BoxGeometry(6.7, 0.4, 18), slabMat);
-    concEast.position.set(3.35, concY, 0);
-    concEast.receiveShadow = true;
-    concGroup.add(concEast);
-
-    // West perimeter corridor
-    const concWest = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.4, 18), slabMat);
-    concWest.position.set(-6.25, concY, 0);
-    concWest.receiveShadow = true;
-    concGroup.add(concWest);
-
-    // North & South of lift corridor
-    const concLiftN = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 5.7), slabMat);
-    concLiftN.position.set(-4.5, concY, -6.15);
-    concLiftN.receiveShadow = true;
-    concGroup.add(concLiftN);
-
-    const concLiftS = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 9.7), slabMat);
-    concLiftS.position.set(-4.5, concY, 4.15);
-    concLiftS.receiveShadow = true;
-    concGroup.add(concLiftS);
-
-    this.slabsGroup.add(concGroup);
-
-    // 3. Upper Platform Track Slab & Undercroft (RL +201.54, Depth 18.46m)
-    const uUndDef = STATION_SPEC.levels.find(l => l.id === 'upper_undercroft')!;
-    const uUndGeom = new THREE.BoxGeometry(width, 0.5, length);
-    const uUndMesh = new THREE.Mesh(uUndGeom, slabMat);
-    uUndMesh.name = 'Upper Undercroft Slab (RL +201.54)';
-    uUndMesh.position.set(0, depthToWorldY(uUndDef.depthBelowGround) - 0.25, 0);
-    uUndMesh.receiveShadow = true;
-    this.slabsGroup.add(uUndMesh);
-
-    // 4. Intermediate Technical / Plant Level (RL +195.54, Depth 24.46m)
-    const intDef = STATION_SPEC.levels.find(l => l.id === 'intermediate')!;
-    const intY = depthToWorldY(intDef.depthBelowGround) - 0.225;
-    const intGroup = new THREE.Group();
-    intGroup.name = 'Intermediate Floor Slab (RL +195.54)';
-
-    // Slabs partitioned around stair 2, stair 3, and elevator openings
-    const intFarN = new THREE.Mesh(new THREE.BoxGeometry(width, 0.45, 65), slabMat);
-    intFarN.position.set(0, intY, -67.5);
-    intFarN.receiveShadow = true;
-    intGroup.add(intFarN);
-
-    const intFarS = new THREE.Mesh(new THREE.BoxGeometry(width, 0.45, 63), slabMat);
-    intFarS.position.set(0, intY, 68.5);
-    intFarS.receiveShadow = true;
-    intGroup.add(intFarS);
-
-    const intCenter = new THREE.Mesh(new THREE.BoxGeometry(6.7, 0.45, 72), slabMat);
-    intCenter.position.set(3.35, intY, 0);
-    intCenter.receiveShadow = true;
-    intGroup.add(intCenter);
-
-    const intWestCenter = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.45, 26), slabMat);
-    intWestCenter.position.set(-4.5, intY, 5);
-    intWestCenter.receiveShadow = true;
-    intGroup.add(intWestCenter);
-
-    this.slabsGroup.add(intGroup);
+    // 2-4. Concourse, upper undercroft, intermediate plant slabs (with derived openings)
+    const named: [Parameters<typeof slabById>[0], string][] = [
+      ['concourse', 'Concourse Floor Slab (RL +209.84)'],
+      ['upper_undercroft', 'Upper Undercroft Slab (RL +201.54)'],
+      ['intermediate', 'Intermediate Floor Slab (RL +195.54)'],
+    ];
+    for (const [id, name] of named) {
+      const g = new THREE.Group();
+      g.name = name;
+      this.addSlabPieces(g, slabById(id), slabMat, name);
+      this.slabsGroup.add(g);
+    }
 
     // 5. Lower Undercroft / Base Foundation Slab (RL +186.09, Depth 33.91m)
-    const lUndDef = STATION_SPEC.levels.find(l => l.id === 'lower_undercroft')!;
-    const baseGeom = new THREE.BoxGeometry(width, 1.2, length);
-    const baseMesh = new THREE.Mesh(baseGeom, slabMat);
+    const lUndDef = STATION_SPEC.levels.find((l) => l.id === 'lower_undercroft')!;
+    const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(width, 1.2, length), slabMat);
     baseMesh.name = 'Foundation Base Slab (RL +186.09)';
     baseMesh.position.set(0, depthToWorldY(lUndDef.depthBelowGround) - 0.6, 0);
     baseMesh.receiveShadow = true;
@@ -242,19 +178,18 @@ export class StationBuilder {
   }
 
   /**
-   * Structural reinforced concrete columns spaced at 10m grid
+   * Structural columns on the manifest grid (ASSUMED column line, see stationLayout.ts).
+   * They run from the roof underside to the top of the base slab.
    */
   private buildStructuralColumns() {
     const colMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.7 });
-    const colRadius = 0.45;
-    const colHeight = 28; // Spanning full station vertical envelope
-    const centerY = depthToWorldY(19.0);
-
-    // Place along internal grid line C (X = -0.5)
-    for (let z = -90; z <= 90; z += 10) {
-      const colGeom = new THREE.CylinderGeometry(colRadius, colRadius, colHeight, 16);
-      const col = new THREE.Mesh(colGeom, colMat);
-      col.position.set(-0.5, centerY, z);
+    const topY = depthToWorldY(5.36);
+    const baseTop = depthToWorldY(STATION_SPEC.levels.find((l) => l.id === 'lower_undercroft')!.depthBelowGround);
+    const colHeight = topY - baseTop;
+    for (const z of COLUMNS.zs) {
+      const col = new THREE.Mesh(new THREE.CylinderGeometry(COLUMNS.radius, COLUMNS.radius, colHeight, 16), colMat);
+      col.name = `Column z=${z}`;
+      col.position.set(COLUMNS.x, (topY + baseTop) / 2, z);
       col.castShadow = true;
       col.receiveShadow = true;
       this.columnsGroup.add(col);
@@ -262,71 +197,21 @@ export class StationBuilder {
   }
 
   /**
-   * Builds the Upper Platform and Lower Platform slabs (140m length, assumed width 4.8m)
+   * Upper and lower platform decks (built once, here) with the stair/lift openings cut out.
+   * StationInterior lays the finished floor 5 mm above these.
    */
   private buildPlatforms() {
-    const platLen = STATION_SPEC.assumedArchitectural.platformLength.value; // 140 m
-    const platWid = STATION_SPEC.assumedArchitectural.platformWidth.value; // 4.8 m
+    const platMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.6 });
+    const defs: [Parameters<typeof slabById>[0], string][] = [
+      ['upper_platform_deck', 'Upper Platform (RL +203.69)'],
+      ['lower_platform_deck', 'Lower Platform (RL +188.99)'],
+    ];
+    for (const [id, name] of defs) this.addSlabPieces(this.platformsGroup, slabById(id), platMat, name);
 
-    const platMat = new THREE.MeshStandardMaterial({
-      color: 0x94a3b8,
-      roughness: 0.6
-    });
-
-    const edgeTactileMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b }); // Yellow tactile edge
-
-    const upperPlatDef = STATION_SPEC.levels.find(l => l.id === 'upper_platform')!;
-    const lowerPlatDef = STATION_SPEC.levels.find(l => l.id === 'lower_platform')!;
-
-    // Platforms sit on the passenger waiting side (opposite to rail track)
-    const platX = -2.2;
-
-    [
-      { name: 'Upper Platform (RL +203.69)', def: upperPlatDef },
-      { name: 'Lower Platform (RL +188.99)', def: lowerPlatDef }
-    ].forEach((p) => {
-      const platY = depthToWorldY(p.def.depthBelowGround);
-
-      // Main platform deck
-      const platGeom = new THREE.BoxGeometry(platWid, 0.35, platLen);
-      const platMesh = new THREE.Mesh(platGeom, platMat);
-      platMesh.name = p.name;
-      platMesh.position.set(platX, platY - 0.175, 0);
-      platMesh.receiveShadow = true;
-      this.platformsGroup.add(platMesh);
-
-      // Safety tactile edge strip along the trackside
-      const edgeGeom = new THREE.BoxGeometry(0.3, 0.02, platLen);
-      const edgeMesh = new THREE.Mesh(edgeGeom, edgeTactileMat);
-      edgeMesh.position.set(platX + platWid / 2 - 0.15, platY + 0.01, 0);
-      this.platformsGroup.add(edgeMesh);
-    });
-
-    // Tag platforms as ASSUMED dimensions
+    // Tag platforms as ASSUMED dimensions (overview label; moved to the overview layer in Phase E)
+    const upperPlatDef = STATION_SPEC.levels.find((l) => l.id === 'upper_platform')!;
     const platTag = AssumedTagMarker.createTag('ASSUMED: PLATFORM 140m', 'Width & Layout unstated');
-    platTag.position.set(-2.2, depthToWorldY(upperPlatDef.depthBelowGround) + 2.0, 0);
+    platTag.position.set((PLATFORM.x0 + PLATFORM.x1) / 2, depthToWorldY(upperPlatDef.depthBelowGround) + 2.0, 0);
     this.assumedEquipmentGroup.add(platTag);
-  }
-
-  /**
-   * Concourse schematic elements (ticket turnstiles, customer care, stairs/lifts)
-   */
-  private buildConcourseElements() {
-    const concDef = STATION_SPEC.levels.find(l => l.id === 'concourse')!;
-    const concY = depthToWorldY(concDef.depthBelowGround);
-
-    // Schematic fare gates (8 gates)
-    const gateMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.8, roughness: 0.3 });
-    for (let i = -4; i < 4; i++) {
-      const gateGeom = new THREE.BoxGeometry(0.15, 1.0, 1.4);
-      const gate = new THREE.Mesh(gateGeom, gateMat);
-      gate.position.set(i * 1.0, concY + 0.5, -20);
-      this.assumedEquipmentGroup.add(gate);
-    }
-
-    // Assumed tag for concourse
-    const concTag = AssumedTagMarker.createTag('ASSUMED: CONCOURSE LAYOUT', 'Schematic transit equipment');
-    concTag.position.set(0, concY + 3.0, -20);
-    this.assumedEquipmentGroup.add(concTag);
   }
 }

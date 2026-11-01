@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { depthToWorldY } from '../data/stationSpec';
 import { AssumedTagMarker } from './AssumedTagMarker';
+import { LIFT, LEVEL_Y, STAIRS, STAIR_X, stairCells, slabForLevel, type StairLayout } from '../data/stationLayout';
 
 export interface StairDefinition {
   id: string;
@@ -113,125 +114,75 @@ export class CirculationBuilder {
       transmission: 0.7
     });
 
-    // 1. Staircase 1: Concourse (-10.16) to Upper Platform (-16.31)
-    // Run: Z from -8 to +8 (16m run for 6.15m rise)
-    const s1 = {
-      id: 'stair-conc-to-uplat',
-      name: 'Stairs: Concourse to Upper Platform',
-      fromLevel: 'concourse',
-      toLevel: 'upper_platform',
-      bounds: {
-        xMin: -2.8,
-        xMax: -0.2,
-        zTop: -8,
-        zBottom: 8,
-        yTop: depthToWorldY(10.16),
-        yBottom: depthToWorldY(16.31)
-      }
-    };
-    this.stairs.push(s1);
-    this.createStairFlight(s1, stepTreadMat, stepNosingMat, handrailMat, glassBalustradeMat);
+    // Stairs come from the layout manifest (width, position, step count with riser <= 0.18 m)
+    for (const layout of STAIRS) {
+      const def: StairDefinition = {
+        id: layout.id,
+        name: layout.name,
+        fromLevel: layout.fromLevel,
+        toLevel: layout.toLevel,
+        bounds: { xMin: layout.xMin, xMax: layout.xMax, zTop: layout.zTop, zBottom: layout.zBottom, yTop: layout.yTop, yBottom: layout.yBottom },
+      };
+      this.stairs.push(def);
+      this.createStairFlight(layout, stepTreadMat, stepNosingMat, handrailMat, glassBalustradeMat);
 
-    // Dedicated Stair 1 overhead downlight
-    const s1Light = new THREE.PointLight(0xffffff, 2.0, 22);
-    s1Light.position.set(-1.5, depthToWorldY(10.16) - 1.5, 0);
-    this.stairsGroup.add(s1Light);
-
-    // 2. Staircase 2: Upper Platform (-16.31) to Intermediate Plant (-24.46)
-    // Run: Z from 18 to 36 (18m run for 8.15m rise)
-    const s2 = {
-      id: 'stair-uplat-to-int',
-      name: 'Stairs: Upper Platform to Intermediate Plant',
-      fromLevel: 'upper_platform',
-      toLevel: 'intermediate',
-      bounds: {
-        xMin: -2.8,
-        xMax: -0.2,
-        zTop: 18,
-        zBottom: 36,
-        yTop: depthToWorldY(16.31),
-        yBottom: depthToWorldY(24.46)
-      }
-    };
-    this.stairs.push(s2);
-    this.createStairFlight(s2, stepTreadMat, stepNosingMat, handrailMat, glassBalustradeMat);
-
-    // Dedicated Stair 2 downlight
-    const s2Light = new THREE.PointLight(0xffffff, 2.0, 24);
-    s2Light.position.set(-1.5, depthToWorldY(16.31) - 2.5, 27);
-    this.stairsGroup.add(s2Light);
-
-    // 3. Staircase 3: Intermediate Plant (-24.46) to Lower Platform (-31.01)
-    // Run: Z from -18 to -34 (16m run for 6.55m rise)
-    const s3 = {
-      id: 'stair-int-to-lplat',
-      name: 'Stairs: Intermediate to Lower Platform',
-      fromLevel: 'intermediate',
-      toLevel: 'lower_platform',
-      bounds: {
-        xMin: -2.8,
-        xMax: -0.2,
-        zTop: -18,
-        zBottom: -34,
-        yTop: depthToWorldY(24.46),
-        yBottom: depthToWorldY(31.01)
-      }
-    };
-    this.stairs.push(s3);
-    this.createStairFlight(s3, stepTreadMat, stepNosingMat, handrailMat, glassBalustradeMat);
-
-    // Dedicated Stair 3 downlight
-    const s3Light = new THREE.PointLight(0xffffff, 2.0, 22);
-    s3Light.position.set(-1.5, depthToWorldY(24.46) - 2.0, -26);
-    this.stairsGroup.add(s3Light);
+      // Dedicated downlight over the flight
+      const light = new THREE.PointLight(0xffffff, 2.0, 24);
+      light.position.set((layout.xMin + layout.xMax) / 2, Math.max(layout.yTop, layout.yBottom) - 1.5 - (layout.yTop - layout.yBottom) / 2 + 1.5, (layout.zTop + layout.zBottom) / 2);
+      this.stairsGroup.add(light);
+    }
 
     // Concourse floor safety balustrade surrounding Stair 1 void
-    this.buildStairwellPerimeterBalustrade(handrailMat, glassBalustradeMat);
+    this.buildStairOpeningGuards(handrailMat, glassBalustradeMat);
 
     // Overhead illuminated wayfinding sign at Concourse top landing
     this.buildStairwayOverheadSign();
 
     // Tag stairs as ASSUMED layout
     const tag = AssumedTagMarker.createTag('ASSUMED: STAIRWAYS', 'Circulation flight placement estimated');
-    tag.position.set(-1.5, depthToWorldY(10.16) + 2.5, 0);
+    tag.position.set(((STAIR_X.min + STAIR_X.max) / 2), depthToWorldY(10.16) + 2.5, 0);
     this.stairsGroup.add(tag);
   }
 
   /**
-   * Concourse perimeter safety balustrade surrounding the Stair 1 opening
+   * Guard rails around each stair opening in the slab the flight starts from (open edge = the stair head),
+   * plus a tactile warning strip on the approach.
    */
-  private buildStairwellPerimeterBalustrade(
-    railMat: THREE.Material,
-    glassMat: THREE.Material
-  ) {
-    const concY = depthToWorldY(10.16);
-    const railHeight = 1.05;
-
-    // East side railing along X = 0.0 (from Z = -8.2 to 8.2)
-    const eastGlass = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.9, 16.4), glassMat);
-    eastGlass.position.set(0.0, concY + 0.45, 0);
-    this.stairsGroup.add(eastGlass);
-
-    const eastRail = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 16.4, 8), railMat);
-    eastRail.rotation.x = Math.PI / 2;
-    eastRail.position.set(0.0, concY + railHeight, 0);
-    this.stairsGroup.add(eastRail);
-
-    // South end railing along Z = 8.2 (from X = -2.8 to 0.0)
-    const southGlass = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.9, 0.04), glassMat);
-    southGlass.position.set(-1.4, concY + 0.45, 8.2);
-    this.stairsGroup.add(southGlass);
-
-    const southRail = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 2.8, 8), railMat);
-    southRail.rotation.z = Math.PI / 2;
-    southRail.position.set(-1.4, concY + railHeight, 8.2);
-    this.stairsGroup.add(southRail);
-
-    // Yellow tactile warning strip at the top approach landing (Z = -8.8 to -8.2)
+  private buildStairOpeningGuards(railMat: THREE.Material, glassMat: THREE.Material) {
     const tactileMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.6 });
-    const approachTactile = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.02, 0.6), tactileMat);
-    approachTactile.position.set(-1.5, concY + 0.01, -8.6);
-    this.stairsGroup.add(approachTactile);
+    const railHeight = 1.05;
+    for (const s of STAIRS) {
+      const slab = slabForLevel(s.fromLevel);
+      const o = slab.openings.find((op) => op.id.startsWith(s.id));
+      if (!o) continue;
+      const dir = Math.sign(s.zBottom - s.zTop);
+      const y = slab.top;
+      const len = o.z1 - o.z0, zc = (o.z0 + o.z1) / 2;
+      // west + east guards along the opening
+      [o.x0, o.x1].forEach((gx) => {
+        const glass = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.9, len), glassMat);
+        glass.position.set(gx, y + 0.45, zc);
+        this.stairsGroup.add(glass);
+        const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, len, 8), railMat);
+        rail.rotation.x = Math.PI / 2;
+        rail.position.set(gx, y + railHeight, zc);
+        this.stairsGroup.add(rail);
+      });
+      // far-end guard
+      const zFar = dir > 0 ? o.z1 : o.z0;
+      const w = o.x1 - o.x0;
+      const endGlass = new THREE.Mesh(new THREE.BoxGeometry(w, 0.9, 0.04), glassMat);
+      endGlass.position.set((o.x0 + o.x1) / 2, y + 0.45, zFar);
+      this.stairsGroup.add(endGlass);
+      const endRail = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, w, 8), railMat);
+      endRail.rotation.z = Math.PI / 2;
+      endRail.position.set((o.x0 + o.x1) / 2, y + railHeight, zFar);
+      this.stairsGroup.add(endRail);
+      // tactile warning strip on the approach to the stair head
+      const tactile = new THREE.Mesh(new THREE.BoxGeometry(w, 0.02, 0.6), tactileMat);
+      tactile.position.set((o.x0 + o.x1) / 2, y + 0.01, s.zTop - dir * 0.6);
+      this.stairsGroup.add(tactile);
+    }
   }
 
   /**
@@ -245,7 +196,7 @@ export class CirculationBuilder {
       new THREE.BoxGeometry(2.8, 0.6, 0.08),
       new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.3, metalness: 0.6 })
     );
-    signBox.position.set(-1.5, concY + 2.7, -8.5);
+    signBox.position.set(((STAIR_X.min + STAIR_X.max) / 2), concY + 2.7, -8.5);
     this.stairsGroup.add(signBox);
 
     // Glowing face
@@ -253,7 +204,7 @@ export class CirculationBuilder {
       new THREE.BoxGeometry(2.6, 0.45, 0.02),
       new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
     );
-    signFace.position.set(-1.5, concY + 2.7, -8.45);
+    signFace.position.set(((STAIR_X.min + STAIR_X.max) / 2), concY + 2.7, -8.45);
     this.stairsGroup.add(signFace);
 
     // Suspension rods
@@ -262,79 +213,61 @@ export class CirculationBuilder {
         new THREE.CylinderGeometry(0.015, 0.015, 1.2, 8),
         new THREE.MeshStandardMaterial({ color: 0xcfd8dc, metalness: 0.9 })
       );
-      rod.position.set(-1.5 + rx, concY + 3.3, -8.5);
+      rod.position.set(((STAIR_X.min + STAIR_X.max) / 2) + rx, concY + 3.3, -8.5);
       this.stairsGroup.add(rod);
     });
   }
 
   private createStairFlight(
-    stair: StairDefinition,
+    stair: StairLayout,
     stepMat: THREE.Material,
     nosingMat: THREE.Material,
     railMat: THREE.Material,
     glassMat: THREE.Material
   ) {
-    const { xMin, xMax, zTop, zBottom, yTop, yBottom } = stair.bounds;
+    const { xMin, xMax, zTop, zBottom, yTop, yBottom } = stair;
     const width = xMax - xMin;
     const length = Math.abs(zBottom - zTop);
     const height = yTop - yBottom;
     const centerX = (xMin + xMax) / 2;
-
-    const numSteps = 24;
-    const stepLength = length / numSteps;
-    const stepHeight = height / numSteps;
     const zDirection = zBottom > zTop ? 1 : -1;
 
-    // Steps with high-contrast nosing stripes
-    for (let i = 0; i < numSteps; i++) {
-      // Step tread
-      const stepGeom = new THREE.BoxGeometry(width, stepHeight, stepLength);
+    // Folded-plate steps: each tread is a block down to its soffit; where the space beneath has under
+    // 2.2 m headroom the block runs down to the landing floor (solid under-stair, not walkable).
+    for (const c of stairCells(stair)) {
+      const stepGeom = new THREE.BoxGeometry(width, c.top - c.bottom, c.zB - c.zA);
       const step = new THREE.Mesh(stepGeom, stepMat);
-      const curZ = zTop + (i + 0.5) * stepLength * zDirection;
-      const curY = yTop - (i + 0.5) * stepHeight;
-      step.position.set(centerX, curY, curZ);
+      step.name = `${stair.id} step ${c.i}`;
+      step.position.set(centerX, (c.top + c.bottom) / 2, (c.zA + c.zB) / 2);
       step.receiveShadow = true;
       this.stairsGroup.add(step);
 
-      // Yellow high-contrast safety nosing strip on forward edge of each step
-      const nosingGeom = new THREE.BoxGeometry(width - 0.02, 0.025, 0.07);
-      const nosing = new THREE.Mesh(nosingGeom, nosingMat);
-      const nosingZ = curZ + (stepLength / 2 - 0.035) * zDirection;
-      nosing.position.set(centerX, curY + stepHeight / 2 + 0.012, nosingZ);
+      // High-contrast safety nosing strip on the forward edge of each tread
+      const nosing = new THREE.Mesh(new THREE.BoxGeometry(width - 0.02, 0.025, 0.07), nosingMat);
+      const forwardZ = zDirection > 0 ? c.zB : c.zA;
+      nosing.position.set(centerX, c.top + 0.0125, forwardZ - zDirection * 0.035);
       this.stairsGroup.add(nosing);
     }
 
-    // Inclined ramp base under steps (clean solid architectural finish)
     const rampLength = Math.hypot(length, height);
     const rampAngle = Math.atan2(height, length);
-    const rampGeom = new THREE.BoxGeometry(width, 0.2, rampLength);
-    const ramp = new THREE.Mesh(rampGeom, stepMat);
-    ramp.position.set(centerX, (yTop + yBottom) / 2 - 0.25, (zTop + zBottom) / 2);
-    ramp.rotation.x = zDirection * rampAngle;
-    this.stairsGroup.add(ramp);
 
     // Handrails and glass balustrades on both sides
     [-width / 2 + 0.05, width / 2 - 0.05].forEach((offset) => {
-      // Top handrail tube
-      const railGeom = new THREE.CylinderGeometry(0.04, 0.04, rampLength, 8);
-      const rail = new THREE.Mesh(railGeom, railMat);
+      const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, rampLength, 8), railMat);
       rail.position.set(centerX + offset, (yTop + yBottom) / 2 + 0.9, (zTop + zBottom) / 2);
       rail.rotation.x = Math.PI / 2 + zDirection * rampAngle;
       this.stairsGroup.add(rail);
 
-      // Glass balustrade panel running along the flight
-      const glassGeom = new THREE.BoxGeometry(0.02, 0.8, rampLength);
-      const glass = new THREE.Mesh(glassGeom, glassMat);
+      const glass = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.8, rampLength), glassMat);
       glass.position.set(centerX + offset, (yTop + yBottom) / 2 + 0.45, (zTop + zBottom) / 2);
       glass.rotation.x = zDirection * rampAngle;
       this.stairsGroup.add(glass);
 
-      // Vertical stainless steel posts every 3 metres
       for (let z = Math.min(zTop, zBottom); z <= Math.max(zTop, zBottom); z += 3) {
         const t = (z - zTop) / (zBottom - zTop);
         const y = yTop - t * height;
-        const postGeom = new THREE.CylinderGeometry(0.03, 0.03, 0.9, 8);
-        const post = new THREE.Mesh(postGeom, railMat);
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.9, 8), railMat);
         post.position.set(centerX + offset, y + 0.45, z);
         this.stairsGroup.add(post);
       }
@@ -345,12 +278,12 @@ export class CirculationBuilder {
    * Builds the glass & steel Elevator Shaft spanning Concourse down to Lower Platform
    */
   private buildElevatorShaft() {
-    const shaftX = -4.5;
-    const shaftZ = -2.0;
-    const shaftW = 2.4;
-    const shaftL = 2.4;
-    const topY = depthToWorldY(10.16) + 3.0;
-    const bottomY = depthToWorldY(31.01);
+    const shaftX = LIFT.cx;
+    const shaftZ = LIFT.cz;
+    const shaftW = LIFT.w;
+    const shaftL = LIFT.l;
+    const topY = LEVEL_Y.concourse + 3.0;
+    const bottomY = LEVEL_Y.lower_platform;
     const shaftHeight = topY - bottomY;
 
     // Glass Shaft Enclosure
@@ -535,12 +468,12 @@ export class CirculationBuilder {
 
     // Concourse overhead sign
     const signBox = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.6, 0.1), signMat);
-    signBox.position.set(-1.5, depthToWorldY(10.16) + 3.2, -6);
+    signBox.position.set(((STAIR_X.min + STAIR_X.max) / 2), depthToWorldY(10.16) + 3.2, -6);
     this.signageGroup.add(signBox);
 
     // Indicator stripe
     const stripe = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.06, 0.12), textMat);
-    stripe.position.set(-1.5, depthToWorldY(10.16) + 2.95, -6);
+    stripe.position.set(((STAIR_X.min + STAIR_X.max) / 2), depthToWorldY(10.16) + 2.95, -6);
     this.signageGroup.add(stripe);
   }
 }

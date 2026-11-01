@@ -64,7 +64,7 @@ Primary source references:
 | **Geological Stratum 3** | $> 21.50\text{ m}$: Fresh quartzite bedrock | WTC paper geotechnical notes | **Verified** |
 | **Groundwater Table** | $5.00\text{ -- }6.00\text{ m}$ depth ($\approx +214.50\text{ m RL}$) | WTC paper text | **Verified** |
 | **Heritage Brick Sewer** | $\approx 10\text{ m}$ depth crossing station | WTC paper text | **Provisional / Assumed** |
-| *Platform Width / Length* | $4.80\text{ m}$ wide $\times 140\text{ m}$ long | Standard Phase IV rolling stock envelope | **ASSUMED** |
+| *Platform Width / Length* | $6.10\text{ m}$ wide (widened from 4.80 in M2b) $\times 140\text{ m}$ long | Standard Phase IV rolling stock envelope | **ASSUMED** |
 | *NATM Lining Thickness* | $0.30\text{ m}$ shotcrete + cast concrete | Standard mining practice | **ASSUMED** |
 | *Cross-Passage Spacing & Count*| 1 illustrative cross-passage placed at $35\text{ m}$ | PRD section 6 | **ASSUMED** |
 | *Concourse Turnstile / Egress* | 8 fare gates, 2 customer kiosks, stairs/lifts | Standard transit station layout | **ASSUMED** |
@@ -125,6 +125,27 @@ Primary source references:
   - [x] Vitest: 28/28 tests passing.
   - [x] Vite production build passing with 0 errors.
   - [x] Git commit after testing.
+
+- [ ] **M2b: Station structure fix (branch `fix/station-structure`, IN PROGRESS: Phases A-B done, C-G pending)**
+  - [x] Phase A: `src/scene/__tests__/stationIntegrity.test.ts` written first and failing on the audited defects.
+  - [x] Phase B: `src/data/stationLayout.ts` is the single layout manifest (grid, stairs, lift, platform, AFC, benches, ESP, slabs). Slabs, platform decks, floor finishes, ceilings and LED runs are generated around openings **derived** from the stairs and the lift (`subtractRects`); nothing is hand-typed.
+  - [ ] Phase C: walkable zones from the manifest (walk mode + VR + minimap). Phase D: journey graph + route guide. Phase E: banners/yellow. Phase F: library records. Phase G: optimisation.
+
+  **Decisions (Phase B)**
+  | Decision | Choice | Why |
+  | :--- | :--- | :--- |
+  | Column line | **X = -0.7, ASSUMED** (was -0.5 in code, "grid C = 0" in a comment) | No Sadar Bazar WTC Fig 15 / GZ Fig 2 file is in the repo, so it cannot be verified. At -0.7 the column face (-0.25) clears the 0.4 m platform-edge tactile strip. |
+  | Stair width / x | **2.20 m (spec), X -3.8..-1.6** (was 2.6 m, X -2.8..-0.2) | Spec value; 0.45 m clear of the column face (rule >= 0.4 m). |
+  | Stair steps | 35 / 46 / 37 steps, riser 176-177 mm, tread 457 / 391 / 432 mm, slope 21.0 / 24.4 / 22.3 deg | Was 24 steps per flight = 256-340 mm risers (above the 180 mm limit). Vertical datum unchanged (Verified). No mid landing was needed. |
+  | Platform passage | Option (c): **platform widened 4.80 -> 6.10 m** (X -5.9..0.2, track edge unchanged) | Options (a) shift lift/furniture and (b) move stair landings to the ends cannot give 2.0 m beside a mid-platform stair on 4.8 m. Measured narrowest clear lane: **2.15 m** on both platforms (test `platform passage`). |
+  | Lift | Moved to X -4.56, Z 12.0, doors +Z, 1.5 m lobby; cuts through concourse, upper deck, undercroft and intermediate slabs | Old position sat on top of stair 1 and the platform deck. |
+  | AFC gate line | **Z = -15** (was Z = -20) | Gates at Z = -20 sat on the column row. Schematic duplicate gates deleted. Unpaid side keeps TVMs/customer care/security. |
+  | ESP | On the **west** face of the column at Z = -10 | Old boxes were inside the column. |
+  | Under-stair space | Solid (steps run down to the landing floor wherever headroom would be < 2.2 m) | Not walkable. |
+  | Column / deck | `column <-> deck` is whitelisted | The 0.35 m deck is a topping cast around the full-height column. |
+  | Column height | Roof underside to top of base slab (was 28 m, floating 0.9 m above the base slab) | Geometry fix. |
+
+  **ASSUMED values changed or added in M2b** (all keep the `Assumed` tag): platform width 4.80 -> 6.10 m; column line X -0.7; stair X -3.8..-1.6 and step counts; lift X -4.56 / Z 12; AFC line Z -15; bench X -5.55 and Z -55 / 45 / 55; PIDS Z +/-40; name signs Z +/-55; ESP at the column west face.
 
 - [x] **M3: Component Library & Interaction System (COMPLETED & VERIFIED)**
   - [x] `src/data/components.json` with 18 verified/provisional/assumed records across 5 engineering disciplines:
