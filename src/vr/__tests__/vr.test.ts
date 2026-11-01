@@ -62,31 +62,3 @@ describe('VR data', () => {
     expect(wrapText('aaa bbb ccc', 7)).toEqual(['aaa bbb', 'ccc']);
   });
 });
-
-import { canTeleport, moveOnFloor, snapToWalkable } from '../locomotion';
-import { LIFT, STAIR_X } from '../../data/stationLayout';
-
-describe('VR teleport validation (zones, not a bounding box)', () => {
-  const xs = (STAIR_X.min + STAIR_X.max) / 2;
-  it('rejects a teleport into a stair void, a lift shaft, under a low stair, past a platform end and onto the track', () => {
-    expect(canTeleport('concourse', { x: xs, z: -5 })).toBe(false);
-    expect(canTeleport('concourse', { x: LIFT.cx, z: LIFT.cz })).toBe(false);
-    expect(canTeleport('upper_platform', { x: xs, z: 6 })).toBe(false);
-    expect(canTeleport('upper_platform', { x: -2, z: 80 })).toBe(false);
-    expect(canTeleport('lower_platform', { x: 3, z: 0 })).toBe(false);
-  });
-  it('accepts teleport onto real floor, including each stair landing', () => {
-    expect(canTeleport('concourse', { x: 0, z: -40 })).toBe(true);
-    for (const [lv, z] of [['concourse', -9], ['upper_platform', 9], ['upper_platform', 17], ['intermediate', 37], ['intermediate', -17], ['lower_platform', -35]] as const) {
-      expect(canTeleport(lv, { x: xs, z }), `${lv} landing z=${z}`).toBe(true);
-    }
-  });
-  it('snaps menu/hotspot jumps onto the nearest valid floor', () => {
-    const p = snapToWalkable('upper_platform', { x: xs, z: 6 });
-    expect(canTeleport('upper_platform', p)).toBe(true);
-  });
-  it('smooth move slides along an edge and stops at a void', () => {
-    const a = moveOnFloor('concourse', { x: -5, z: -4 }, { x: -2.7, z: -4 });
-    expect(a.x).toBeLessThan(-3.8);
-  });
-});

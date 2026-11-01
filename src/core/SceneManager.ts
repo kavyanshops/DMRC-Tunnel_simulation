@@ -10,7 +10,6 @@ import { OverviewControls } from '../controls/OverviewControls';
 import { FirstPersonControls } from '../controls/FirstPersonControls';
 import { WalkHUD } from '../controls/WalkHUD';
 import { STATION_SPEC, worldYToDepth, worldYToRL } from '../data/stationSpec';
-import { levelAtY, standInFrontOf } from '../scene/walkable';
 import { AppMode, CameraViewMode, LayerVisibilityState } from '../types';
 import { RouteGuide } from '../navigation/RouteGuide';
 
@@ -223,12 +222,21 @@ export class SceneManager {
     }
 
     if (this.cameraViewMode === 'walk') {
-      // Land on real floor of the nearest walkable level, ~2 m in front of the component (never on top of it)
-      const level = levelAtY(comp.coordinates.y);
-      this.firstPersonControls.teleportToLevel(level);
-      const spot = standInFrontOf(level, comp.coordinates.x, comp.coordinates.z, 2.0);
-      this.firstPersonControls.feetPosition.set(spot.x, spot.y, spot.z);
-      this.firstPersonControls.yaw = spot.yaw;
+      if (comp.levelId && ['concourse', 'upper_platform', 'intermediate', 'lower_platform', 'ground'].includes(comp.levelId)) {
+        this.firstPersonControls.teleportToLevel(comp.levelId);
+      }
+      const target = new THREE.Vector3(comp.coordinates.x, comp.coordinates.y, comp.coordinates.z);
+      let spawnX = target.x;
+      let spawnZ = target.z - 2.5;
+      if (spawnX < -5.4) spawnX = -4.5;
+      if (spawnX > 5.4) spawnX = 4.5;
+      if (spawnZ < -94) spawnZ = -92;
+      if (spawnZ > 94) spawnZ = 92;
+
+      this.firstPersonControls.feetPosition.set(spawnX, comp.coordinates.y, spawnZ);
+      const dx = target.x - spawnX;
+      const dz = target.z - spawnZ;
+      this.firstPersonControls.yaw = Math.atan2(-dx, -dz);
       this.firstPersonControls.pitch = 0;
       this.firstPersonControls.updateCameraTransform();
       this.firstPersonControls.lock();

@@ -1,6 +1,4 @@
-import { BOUNDS, type VRLevelId } from './config';
-import { constrainMove, isWalkable, nearestWalkable } from '../scene/walkable';
-import { LEVEL_Y } from '../data/stationLayout';
+import { BOUNDS } from './config';
 
 export interface Vec3 { x: number; y: number; z: number }
 
@@ -45,23 +43,4 @@ export function clampToBounds(p: Vec3): Vec3 {
 /** Rig position so that the user's head ends up above `target` (cancels head offset in the rig). */
 export function rigPositionForTarget(target: Vec3, headLocal: Vec3, floorY: number): Vec3 {
   return { x: target.x - headLocal.x, y: floorY, z: target.z - headLocal.z };
-}
-
-/**
- * Teleport validation: a destination is accepted only if it lies on real floor of this level
- * (not in a stair or lift void, not under a low stair, not past the platform ends).
- */
-export function canTeleport(level: VRLevelId, p: { x: number; z: number }): boolean {
-  return isWalkable(level, p.x, p.z);
-}
-
-/** Nearest valid standing point on this level (used by the level menu and hotspot jumps). */
-export function snapToWalkable(level: VRLevelId, p: { x: number; z: number }): Vec3 {
-  const n = nearestWalkable(level, p.x, p.z, 0.4);
-  return { x: n.x, y: LEVEL_Y[level], z: n.z };
-}
-
-/** Smooth-move step that cannot leave the floor: slides along edges, stops at voids. */
-export function moveOnFloor(level: VRLevelId, from: { x: number; z: number }, to: { x: number; z: number }): { x: number; z: number } {
-  return constrainMove(from.x, from.z, to.x, to.z, LEVEL_Y[level]);
 }

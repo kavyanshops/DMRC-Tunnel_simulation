@@ -62,19 +62,15 @@ describe('Walk Mode - FirstPersonControls Physics & Collision', () => {
     const yBottom = depthToWorldY(16.31);
     const xOnStairs = (STAIR_X.min + STAIR_X.max) / 2;
 
-    // The floor height now depends on where the person's feet are (a stair is only a stair if you are on it)
     // Top landing
-    expect(controls.computeFloorHeightAt(xOnStairs, -8, yTop)).toBeCloseTo(yTop, 2);
+    expect(controls.computeFloorHeightAt(xOnStairs, -8)).toBeCloseTo(yTop, 2);
 
     // Mid flight (z=0)
     const yMidExpected = (yTop + yBottom) / 2;
-    expect(controls.computeFloorHeightAt(xOnStairs, 0, yMidExpected)).toBeCloseTo(yMidExpected, 2);
+    expect(controls.computeFloorHeightAt(xOnStairs, 0)).toBeCloseTo(yMidExpected, 2);
 
     // Bottom landing (z=8)
-    expect(controls.computeFloorHeightAt(xOnStairs, 8, yBottom)).toBeCloseTo(yBottom, 2);
-
-    // Standing on the concourse floor next to the void does NOT snap you onto the flight below
-    expect(controls.computeFloorHeightAt(xOnStairs, 0, yTop)).toBeCloseTo(yTop, 2); // concourse floor, not the flight
+    expect(controls.computeFloorHeightAt(xOnStairs, 8)).toBeCloseTo(yBottom, 2);
   });
 
   it('does not pull the player onto stairs when passing beside them', () => {
