@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { STATION_SPEC, TUNNEL_LAYOUT, depthToWorldY } from '../data/stationSpec';
-import { AssumedTagMarker } from './AssumedTagMarker';
 
 export class TunnelBuilder {
   public group: THREE.Group;
@@ -142,10 +141,6 @@ export class TunnelBuilder {
     cpMesh.position.set(-3.5, cpY, cpZ);
     this.crossPassageGroup.add(cpMesh);
 
-    // Dashed helper box around cross passage
-    const dashedBox = AssumedTagMarker.createDashedBoundingBox(new THREE.Vector3(cpLength + 1, cpRadius * 2 + 1, cpRadius * 2 + 1), 0xf59e0b);
-    dashedBox.position.set(-3.5, cpY, cpZ);
-    this.crossPassageGroup.add(dashedBox);
 
   }
 

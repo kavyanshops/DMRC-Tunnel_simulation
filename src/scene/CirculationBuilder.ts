@@ -114,6 +114,15 @@ export class CirculationBuilder {
     });
 
     // Stairs come from the layout manifest (width, position, step count with riser <= 0.18 m)
+    const nosingCount = STAIRS.reduce((total, layout) => total + layout.steps, 0);
+    const nosings = new THREE.InstancedMesh(
+      new THREE.BoxGeometry(1, 0.025, 0.07),
+      stepNosingMat,
+      nosingCount
+    );
+    nosings.name = 'Stair safety nosings';
+    let nosingIndex = 0;
+
     for (const layout of STAIRS) {
       const def: StairDefinition = {
         id: layout.id,
@@ -123,13 +132,15 @@ export class CirculationBuilder {
         bounds: { xMin: layout.xMin, xMax: layout.xMax, zTop: layout.zTop, zBottom: layout.zBottom, yTop: layout.yTop, yBottom: layout.yBottom },
       };
       this.stairs.push(def);
-      this.createStairFlight(layout, stepTreadMat, stepNosingMat, handrailMat, glassBalustradeMat);
+      this.createStairFlight(layout, stepTreadMat, handrailMat, glassBalustradeMat, nosings, () => nosingIndex++);
 
       // Dedicated downlight over the flight
       const light = new THREE.PointLight(0xffffff, 2.0, 24);
       light.position.set((layout.xMin + layout.xMax) / 2, Math.max(layout.yTop, layout.yBottom) - 1.5 - (layout.yTop - layout.yBottom) / 2 + 1.5, (layout.zTop + layout.zBottom) / 2);
       this.stairsGroup.add(light);
     }
+    nosings.instanceMatrix.needsUpdate = true;
+    this.stairsGroup.add(nosings);
 
     // Concourse floor safety balustrade surrounding Stair 1 void
     this.buildStairOpeningGuards(handrailMat, glassBalustradeMat);
@@ -216,9 +227,10 @@ export class CirculationBuilder {
   private createStairFlight(
     stair: StairLayout,
     stepMat: THREE.Material,
-    nosingMat: THREE.Material,
     railMat: THREE.Material,
-    glassMat: THREE.Material
+    glassMat: THREE.Material,
+    nosings: THREE.InstancedMesh,
+    nextNosingIndex: () => number
   ) {
     const { xMin, xMax, zTop, zBottom, yTop, yBottom } = stair;
     const width = xMax - xMin;
@@ -237,11 +249,13 @@ export class CirculationBuilder {
       step.receiveShadow = true;
       this.stairsGroup.add(step);
 
-      // High-contrast safety nosing strip on the forward edge of each tread
-      const nosing = new THREE.Mesh(new THREE.BoxGeometry(width - 0.02, 0.025, 0.07), nosingMat);
       const forwardZ = zDirection > 0 ? c.zB : c.zA;
-      nosing.position.set(centerX, c.top + 0.0125, forwardZ - zDirection * 0.035);
-      this.stairsGroup.add(nosing);
+      const nosingMatrix = new THREE.Matrix4().compose(
+        new THREE.Vector3(centerX, c.top + 0.0125, forwardZ - zDirection * 0.035),
+        new THREE.Quaternion(),
+        new THREE.Vector3(width - 0.02, 1, 1)
+      );
+      nosings.setMatrixAt(nextNosingIndex(), nosingMatrix);
     }
 
     const rampLength = Math.hypot(length, height);
