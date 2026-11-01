@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { COLUMNS, LIFT, STAIR_X } from '../../data/stationLayout';
 import { describe, expect, it, beforeEach } from 'vitest';
 import * as THREE from 'three';
 import { FirstPersonControls } from '../FirstPersonControls';
@@ -59,7 +60,7 @@ describe('Walk Mode - FirstPersonControls Physics & Collision', () => {
     // Stair 1 connects Concourse (-10.16m at z=-8) to Upper Platform (-16.31m at z=8)
     const yTop = depthToWorldY(10.16);
     const yBottom = depthToWorldY(16.31);
-    const xOnStairs = -1.5;
+    const xOnStairs = (STAIR_X.min + STAIR_X.max) / 2;
 
     // Top landing
     expect(controls.computeFloorHeightAt(xOnStairs, -8)).toBeCloseTo(yTop, 2);
@@ -90,8 +91,8 @@ describe('Walk Mode - FirstPersonControls Physics & Collision', () => {
   });
 
   it('detects when player is inside the elevator and coordinates elevator cabin motion', () => {
-    // Step inside elevator cabin (shaft centered at x = -4.5, z = -2.0)
-    controls.feetPosition.set(-4.5, depthToWorldY(10.16), -2.0);
+    // Step inside elevator cabin (shaft centre from the layout manifest)
+    controls.feetPosition.set(LIFT.cx, depthToWorldY(10.16), LIFT.cz);
     expect(controls.isPlayerInElevator()).toBe(true);
 
     // Call elevator to Lower Platform (Stop 3, -31.01m)
@@ -145,10 +146,10 @@ describe('Walk Mode - FirstPersonControls Physics & Collision', () => {
   });
 
   it('prevents walking through structural columns and platform edge boundaries', () => {
-    // Column at X = -0.5, Z = 50 (cylinder radius 0.45m + player radius 0.35m = 0.80m)
-    controls.feetPosition.set(-0.5, depthToWorldY(10.16), 49.8);
+    // Column on the manifest grid at Z = 50 (cylinder radius 0.45m + player radius 0.35m = 0.80m)
+    controls.feetPosition.set(COLUMNS.x, depthToWorldY(10.16), 49.8);
     controls.update(0.016);
-    const distToCol = Math.hypot(controls.feetPosition.x - (-0.5), controls.feetPosition.z - 50);
+    const distToCol = Math.hypot(controls.feetPosition.x - COLUMNS.x, controls.feetPosition.z - 50);
     expect(distToCol).toBeGreaterThanOrEqual(0.79);
 
     // On Upper Platform level, PSD prevents falling onto track bed (x <= 0.1)

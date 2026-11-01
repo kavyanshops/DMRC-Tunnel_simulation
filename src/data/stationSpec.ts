@@ -380,11 +380,11 @@ export const STATION_SPEC = {
       notes: 'Station length is ~200 m; platform occupies central portion'
     },
     platformWidth: {
-      value: 4.80,
+      value: 6.10,
       unit: 'm',
-      source: 'Estimated single-sided platform width in stacked configuration',
+      source: 'Estimated single-sided platform width in stacked configuration (widened from 4.80 m in M2b)',
       confidence: 'Assumed' as ConfidenceLevel,
-      notes: 'Exact platform width not given in source drawings'
+      notes: 'Exact platform width not given in source drawings. Widened 4.80 -> 6.10 m (west edge to the finished wall face at X = -5.9) so a 2.2 m stair landing + 0.4 m column gap still leave a >= 2.0 m clear lane. See PROJECT_TRACKING.md M2b.'
     },
     staircaseWidth: {
       value: 2.20,
@@ -411,7 +411,7 @@ export const STATION_SPEC = {
 /**
  * Coordinate System Utility:
  * - World origin (0, 0, 0):
- *   X = Station transverse axis (across 13.4m box width, Grid C is at X = 0)
+ *   X = Station transverse axis (across 13.4m box width). The ASSUMED column line is X = -0.7 (see stationLayout.ts)
  *   Y = Ground Level RL (+220.00 m RL is Y = 0.00) -> underground levels have negative Y!
  *   Z = Station longitudinal axis along 200m length (Z = 0 is station center)
  */

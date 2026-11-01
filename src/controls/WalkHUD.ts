@@ -1,3 +1,4 @@
+import { LIFT } from '../data/stationLayout';
 import * as THREE from 'three';
 import type { FirstPersonControls, PlayerTelemetry } from './FirstPersonControls';
 import type { StationInteractable } from '../scene/StationInterior';
@@ -341,8 +342,8 @@ export class WalkHUD {
     }
 
     // Elevator shaft marker
-    const liftMapZ = padX + ((-2.0 + 100) / 200) * boxW;
-    const liftMapX = padY + ((-4.5 + 6.7) / 13.4) * boxH;
+    const liftMapZ = padX + ((LIFT.cz + 100) / 200) * boxW;
+    const liftMapX = padY + ((LIFT.cx + 6.7) / 13.4) * boxH;
     ctx.fillStyle = '#0284c7';
     ctx.fillRect(liftMapZ - 2, liftMapX - 2, 4, 4);
 

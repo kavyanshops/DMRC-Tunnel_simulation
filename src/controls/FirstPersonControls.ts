@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { STATION_SPEC, depthToWorldY, worldYToDepth, worldYToRL } from '../data/stationSpec';
+import { AFC_LINE, COLUMNS, LIFT } from '../data/stationLayout';
 import type { CirculationBuilder } from '../scene/CirculationBuilder';
 import type { StationInterior, StationInteractable } from '../scene/StationInterior';
 
@@ -66,10 +67,10 @@ export class FirstPersonControls {
 
   // Elevator shaft bounds
   private readonly liftBounds = {
-    xMin: -5.6,
-    xMax: -3.4,
-    zMin: -3.1,
-    zMax: -0.9,
+    xMin: LIFT.cx - 1.1,
+    xMax: LIFT.cx + 1.1,
+    zMin: LIFT.cz - 1.1,
+    zMax: LIFT.cz + 1.1,
   };
 
   // Interactive targeting
@@ -94,7 +95,7 @@ export class FirstPersonControls {
     // Default spawn: Concourse Level at ticket gates (L1, -10.16m depth)
     const concDef = STATION_SPEC.levels.find((l) => l.id === 'concourse')!;
     const spawnY = depthToWorldY(concDef.depthBelowGround);
-    this.feetPosition = new THREE.Vector3(0, spawnY, -15);
+    this.feetPosition = new THREE.Vector3(0, spawnY, -12.5);
     this.yaw = 0;
     this.pitch = 0;
 
@@ -237,7 +238,7 @@ export class FirstPersonControls {
     switch (levelId) {
       case 'concourse':
         x = 0;
-        z = -15;
+        z = -12.5;
         newYaw = 0;
         break;
       case 'upper_platform':
@@ -386,13 +387,13 @@ export class FirstPersonControls {
     }
 
     if (!isOnStairs) {
-      // C. Reinforced Concrete Columns Collision (Cylinders at X = -0.5, Z every 10m)
-      const colRadius = 0.45;
+      // C. Reinforced Concrete Columns Collision (Cylinders on the layout manifest grid)
+      const colRadius = COLUMNS.radius;
       const playerRadius = 0.35;
       const minDist = colRadius + playerRadius; // 0.80m
 
-      for (let cz = -90; cz <= 90; cz += 10) {
-        const dx = x - (-0.5);
+      for (const cz of COLUMNS.zs) {
+        const dx = x - COLUMNS.x;
         const dz = z - cz;
         const dist = Math.hypot(dx, dz);
         if (dist < minDist && dist > 0.0001) {
@@ -407,7 +408,7 @@ export class FirstPersonControls {
       if (!insideElevator) {
         const lb = this.liftBounds;
         const isDoorOpen = this.elevatorDoorsOpen && this.elevatorDoorProgress > 0.6;
-        const approachingDoor = x >= -4.8 && x <= -4.2 && z >= -1.2 && z <= -0.7;
+        const approachingDoor = x >= LIFT.cx - 0.3 && x <= LIFT.cx + 0.3 && z >= LIFT.cz + 0.8 && z <= LIFT.cz + 1.3;
 
         // If not entering through open door, prevent entering shaft
         if (!(isDoorOpen && approachingDoor)) {
@@ -427,8 +428,8 @@ export class FirstPersonControls {
         }
       } else {
         // Player inside elevator: clamp within cabin walls
-        x = Math.max(-5.3, Math.min(-3.7, x));
-        z = Math.max(-2.8, Math.min(-1.1, z));
+        x = Math.max(LIFT.cx - 0.8, Math.min(LIFT.cx + 0.8, x));
+        z = Math.max(LIFT.cz - 0.85, Math.min(LIFT.cz + 0.85, z));
       }
 
       // E. Platform Screen Doors (PSD) barrier on platform levels
@@ -442,13 +443,14 @@ export class FirstPersonControls {
         }
       }
 
-      // F. Concourse Fare Gates Barrier at Z = -20
+      // F. Concourse Fare Gates Barrier at the AFC line (layout manifest)
       if (this.activeLevelId === 'concourse' && this.stationInterior && !this.stationInterior.fareGatesOpen) {
-        if (x >= -3.5 && x <= 3.5) {
-          if (this.feetPosition.z <= -20.8 && z > -20.8) {
-            z = -20.8; // Blocked on unpaid side
-          } else if (this.feetPosition.z >= -19.2 && z < -19.2) {
-            z = -19.2; // Blocked on paid side
+        if (x >= -AFC_LINE.halfSpan && x <= AFC_LINE.halfSpan) {
+          const zu = AFC_LINE.z - 0.8, zp = AFC_LINE.z + 0.8;
+          if (this.feetPosition.z <= zu && z > zu) {
+            z = zu; // Blocked on unpaid side
+          } else if (this.feetPosition.z >= zp && z < zp) {
+            z = zp; // Blocked on paid side
           }
         }
       }
