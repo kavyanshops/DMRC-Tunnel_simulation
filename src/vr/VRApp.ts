@@ -11,6 +11,7 @@ import { applyDeadzone, clampToBounds, rayPlaneHit, rigPositionForTarget, smooth
 import { PanelButton, hitTest, layoutLevelButtons } from './panelModel';
 import { Hotspot, loadHotspots, wrapText } from './hotspots';
 import { batchStaticMeshes } from './batch';
+import { journeyGuidePoints } from '../navigation/journeyGraph';
 
 const PANEL_W = 512, PANEL_H = 640;
 
@@ -31,6 +32,7 @@ export class VRApp {
   private menuCtx: CanvasRenderingContext2D;
   private menuTex: THREE.CanvasTexture;
   private buttons: PanelButton[] = [];
+  private routeGuide: THREE.Group;
   private info: THREE.Mesh;
   private infoCtx: CanvasRenderingContext2D;
   private infoTex: THREE.CanvasTexture;
@@ -80,6 +82,8 @@ export class VRApp {
     this.scene.add(this.marker);
 
     this.buildHotspots();
+    this.routeGuide = this.buildRouteGuide();
+    this.scene.add(this.routeGuide);
 
     const m = this.makePanel(PANEL_W, PANEL_H, 0.32, 0.4);
     this.menu = m.mesh; this.menuCtx = m.ctx; this.menuTex = m.tex;
@@ -192,6 +196,7 @@ export class VRApp {
   private onButton(id: string) {
     if (id.startsWith('lvl:')) this.setLevel(id.slice(4) as VRLevelId);
     else if (id === 'hotspots') this.hotspotMeshes.forEach((m) => (m.visible = !m.visible));
+    else if (id === 'route') this.routeGuide.visible = !this.routeGuide.visible;
   }
 
   // ---- UI drawing ----
@@ -204,12 +209,33 @@ export class VRApp {
     this.buttons = layoutLevelButtons(
       VR_LEVEL_IDS.map((id) => ({ id: 'lvl:' + id, label: levelName(id) })), PANEL_W, 56, 64, 12);
     this.buttons.push({ id: 'hotspots', label: 'Toggle hotspots', x: 12, y: 56 + 4 * 76 + 8, w: PANEL_W - 24, h: 64 });
+    this.buttons.push({ id: 'route', label: 'Toggle route guide', x: 12, y: 56 + 4 * 76 + 84, w: PANEL_W - 24, h: 64 });
     for (const b of this.buttons) {
       const active = b.id === 'lvl:' + this.level;
       g.fillStyle = active ? '#0ea5e9' : '#334155'; g.fillRect(b.x, b.y, b.w, b.h);
       g.fillStyle = active ? '#04121c' : '#e2e8f0'; g.font = '24px system-ui'; g.fillText(b.label, b.x + 14, b.y + 40);
     }
+
     this.menuTex.needsUpdate = true;
+  }
+
+  private buildRouteGuide() {
+    const group = new THREE.Group();
+    group.name = 'GuidedJourneyRoute';
+    const points = journeyGuidePoints().map((point) => new THREE.Vector3(point.x, point.y + 0.08, point.z));
+    group.add(new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(points),
+      new THREE.LineBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.9 })
+    ));
+    const geometry = new THREE.SphereGeometry(0.18, 12, 8);
+    const material = new THREE.MeshBasicMaterial({ color: 0x22d3ee });
+    for (const point of points) {
+      const marker = new THREE.Mesh(geometry, material);
+      marker.position.copy(point);
+      group.add(marker);
+    }
+    group.visible = false;
+    return group;
   }
 
   private showInfo(h: Hotspot) {

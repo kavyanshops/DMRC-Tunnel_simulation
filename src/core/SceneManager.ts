@@ -11,6 +11,7 @@ import { FirstPersonControls } from '../controls/FirstPersonControls';
 import { WalkHUD } from '../controls/WalkHUD';
 import { STATION_SPEC, worldYToDepth, worldYToRL } from '../data/stationSpec';
 import { AppMode, CameraViewMode, LayerVisibilityState } from '../types';
+import { RouteGuide } from '../navigation/RouteGuide';
 
 export class SceneManager {
   public scene: THREE.Scene;
@@ -28,6 +29,7 @@ export class SceneManager {
   public stationInterior: StationInterior;
   public atmosphere: CinematicAtmosphere;
   public componentLibrary: ComponentLibrary;
+  public routeGuide: RouteGuide;
 
   private currentMode: AppMode = 'home';
   private isRunning: boolean = true;
@@ -95,6 +97,11 @@ export class SceneManager {
     this.componentLibrary = new ComponentLibrary((comp) => this.navigateToComponent(comp));
 
     this.walkHUD = new WalkHUD(this.firstPersonControls, () => this.toggleCameraView(), this.componentLibrary);
+    this.routeGuide = new RouteGuide();
+    this.scene.add(this.routeGuide.group);
+    window.addEventListener('keydown', (event) => {
+      if (event.code === 'KeyG' && this.cameraViewMode === 'walk') this.routeGuide.setVisible(!this.routeGuide.group.visible);
+    });
 
     // On interact in walk mode, mark explored in component library
     const origInteractCallback = this.firstPersonControls.onInteractCallback;
@@ -195,6 +202,7 @@ export class SceneManager {
       // When entering walk mode, automatically attempt pointer lock
       this.firstPersonControls.lock();
     } else {
+      this.routeGuide.setVisible(false);
       this.firstPersonControls.enabled = false;
       this.firstPersonControls.unlock();
       this.overviewControls.controls.enabled = true;
@@ -362,4 +370,3 @@ export class SceneManager {
     this.renderer.dispose();
   }
 }
-

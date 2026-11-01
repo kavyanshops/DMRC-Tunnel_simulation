@@ -276,6 +276,10 @@ export class StationInterior {
       subtractRects(rect, slab.openings).forEach((piece) => this.addPlane(piece, slab.top + 0.005, this.floorMat, true, 1.43, true));
     });
 
+    // Continuous two-metre route between the Stair 2 foot and Stair 3 head.
+    const intermediateY = slabForLevel('intermediate').top + 0.01;
+    this.addPlane({ x0: 0.5, x1: 2.5, z0: -18, z1: 36 }, intermediateY, this.floorMat, true, 1.43, true);
+
     // Concourse tactile guide path from the north entrance to the AFC aisle (stops short of the gate line)
     const guide = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.015, 33), this.tactileMat);
     guide.position.set(0.45, concourse.top + 0.008, -50 + 16.5);

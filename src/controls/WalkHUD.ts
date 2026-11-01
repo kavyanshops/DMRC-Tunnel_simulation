@@ -140,6 +140,7 @@ export class WalkHUD {
       <span class="hint-item"><kbd>Shift</kbd> Sprint</span>
       <span class="hint-item"><kbd>E</kbd> Interact</span>
       <span class="hint-item"><kbd>C</kbd> Library</span>
+      <span class="hint-item"><kbd>G</kbd> Route guide</span>
       <span class="hint-item"><kbd>Mouse</kbd> Look</span>
       <span class="hint-item"><kbd>Tab</kbd> Overview</span>
       <span class="hint-item"><kbd>Esc</kbd> Unlock</span>
