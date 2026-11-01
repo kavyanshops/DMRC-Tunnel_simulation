@@ -29,7 +29,7 @@ Primary source references:
 - **Genuine 3D Cursor Tracking**: Mouse movements directly steer the 3D perspective camera with smooth interpolation ($lerp = 0.045$), creating realistic depth and parallax.
 - **Interactive 3D Cards**: Four experience cards with dynamic 3D tilt on hover (`perspective(1000px) rotateX/Y`), custom status pills, and glow borders.
 - **Clean Focus**: Removed secondary buttons; hero focuses on the single primary action (`ENTER 3D MODEL`).
-- **Permanent Safety Banner**: *"Training prototype — not approved for operational decisions."*
+- **Runtime Disclaimer**: Removed from the application UI; prototype assumptions remain documented in this file.
 - **Performance**: High performance on student laptops via shared standard materials, low poly counts, and zero heavy textures.
 
 ---
@@ -222,4 +222,3 @@ Entry: homepage card "Construction Training" -> `#construction-training` (lazy-l
 - [x] Browser visual verification & recording completed.
 
 SME-review required: every stage description, checkpoint, scenario, and monitoring threshold is tagged ASSUMED/Provisional. Thresholds and telemetry are illustrative (`SIMULATED — not real telemetry`).
-

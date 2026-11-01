@@ -35,7 +35,7 @@
   
   /* Spacing */
   --header-height: 64px;
-  --banner-height: 32px;
+  --banner-height: 0px;
 }
 
 * {
@@ -54,41 +54,6 @@ html, body {
   color: var(--text-primary);
   font-family: var(--font-sans);
   user-select: none;
-}
-
-/* Permanent Prototype Safety Banner */
-#permanent-banner {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: var(--banner-height);
-  background: linear-gradient(90deg, #180f02 0%, #2e1d05 50%, #180f02 100%);
-  border-bottom: 1px solid rgba(245, 158, 11, 0.35);
-  color: #fbbf24;
-  font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  z-index: 1000;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-}
-
-#permanent-banner .badge-icon {
-  width: 14px;
-  height: 14px;
-  background-color: #f59e0b;
-  color: #000;
-  border-radius: 2px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 800;
 }
 
 /* Main Application Shell */
@@ -356,7 +321,7 @@ html, body {
   position: relative;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 18px;
   width: 100%;
   max-width: 1400px;
@@ -364,6 +329,8 @@ html, body {
 }
 
 .hero-tile {
+  color: inherit;
+  text-decoration: none;
   background: var(--bg-card);
   backdrop-filter: blur(16px);
   border: 1px solid var(--border-card);
@@ -1782,4 +1749,3 @@ html, body {
   font-size: 0.82rem;
   cursor: pointer;
 }
-

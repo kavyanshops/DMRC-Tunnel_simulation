@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { STATION_SPEC, TUNNEL_LAYOUT, depthToWorldY } from '../data/stationSpec';
-import { AssumedTagMarker } from './AssumedTagMarker';
-import { COLUMNS, PLATFORM, slabById, subtractRects, type SlabSpec } from '../data/stationLayout';
+import { COLUMNS, slabById, subtractRects, type SlabSpec } from '../data/stationLayout';
 
 export class StationBuilder {
   public group: THREE.Group;
@@ -208,10 +207,5 @@ export class StationBuilder {
     ];
     for (const [id, name] of defs) this.addSlabPieces(this.platformsGroup, slabById(id), platMat, name);
 
-    // Tag platforms as ASSUMED dimensions (overview label; moved to the overview layer in Phase E)
-    const upperPlatDef = STATION_SPEC.levels.find((l) => l.id === 'upper_platform')!;
-    const platTag = AssumedTagMarker.createTag('ASSUMED: PLATFORM 140m', 'Width & Layout unstated');
-    platTag.position.set((PLATFORM.x0 + PLATFORM.x1) / 2, depthToWorldY(upperPlatDef.depthBelowGround) + 2.0, 0);
-    this.assumedEquipmentGroup.add(platTag);
   }
 }

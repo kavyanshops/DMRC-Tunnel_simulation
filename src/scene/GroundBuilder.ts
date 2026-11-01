@@ -80,10 +80,6 @@ export class GroundBuilder {
       southMesh.position.set(STATION_SPEC.stationBox.width.value / 2 + soilBankWidth / 2, centerY, blockLength / 2 - endLength / 2);
       this.strataGroup.add(southMesh);
 
-      // Strata label on the exposed vertical cut profile
-      const labelTag = AssumedTagMarker.createTag(stratum.name.toUpperCase(), `${stratum.depthStart}-${stratum.depthEnd}m depth`);
-      labelTag.position.set(-STATION_SPEC.stationBox.width.value / 2 - 2, centerY, -80);
-      this.strataGroup.add(labelTag);
     });
   }
 
@@ -108,10 +104,6 @@ export class GroundBuilder {
     this.waterTablePlane.position.set(0, waterY, 0);
     this.strataGroup.add(this.waterTablePlane);
 
-    // Label sprite
-    const tag = AssumedTagMarker.createTag('WATER TABLE ~5.5m', 'RL +214.50m (Verified)');
-    tag.position.set(-20, waterY + 2.0, 40);
-    this.strataGroup.add(tag);
   }
 
   /**
@@ -135,11 +127,6 @@ export class GroundBuilder {
     const sewerMesh = new THREE.Mesh(curve, mat);
     sewerMesh.position.set(0, sewerY, 112);
     this.sewerGroup.add(sewerMesh);
-
-    // Tag as ASSUMED because exact alignment and clearances are unknown
-    const sewerTag = AssumedTagMarker.createTag('ASSUMED: BRICK SEWER', '~10m Depth Crossing');
-    sewerTag.position.set(10, sewerY + 3.0, 112);
-    this.assumedTagsGroup.add(sewerTag);
 
     // Dashed helper box around sewer
     const dashedBox = AssumedTagMarker.createDashedBoundingBox(new THREE.Vector3(45, 3.5, 3.5), 0xf59e0b);
@@ -213,10 +200,6 @@ export class GroundBuilder {
       this.surfaceGroup.add(bld);
     });
 
-    // Tag for Heritage Buildings
-    const bldTag = AssumedTagMarker.createTag('HERITAGE CORRIDOR', 'Clearance 20-21m (Verified)');
-    bldTag.position.set(-22, 18, 0);
-    this.assumedTagsGroup.add(bldTag);
   }
 
   /**

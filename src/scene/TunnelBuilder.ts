@@ -33,7 +33,6 @@ export class TunnelBuilder {
     this.buildStackedTunnels();
     this.buildTracks();
     this.buildCrossPassage();
-    this.buildConflictNotice();
   }
 
   /** Z ranges of the bored tunnels: only OUTSIDE the station box (headwall face -> portal end). */
@@ -148,23 +147,6 @@ export class TunnelBuilder {
     dashedBox.position.set(-3.5, cpY, cpZ);
     this.crossPassageGroup.add(dashedBox);
 
-    // Tag Sprite
-    const tag = AssumedTagMarker.createTag('ASSUMED: CROSS-PASSAGE', 'NATM Ø4.10m Sourced');
-    tag.position.set(-3.5, cpY + 3.2, cpZ);
-    this.crossPassageGroup.add(tag);
   }
 
-  /**
-   * Permanent 3D Warning Tag for Known Conflict:
-   * "Gap unverified - ask authors/DMRC"
-   */
-  private buildConflictNotice() {
-    const upperRail = STATION_SPEC.levels.find(l => l.id === 'upper_rail')!;
-    const lowerRail = STATION_SPEC.levels.find(l => l.id === 'lower_rail')!;
-    const midY = (depthToWorldY(upperRail.depthBelowGround) + depthToWorldY(lowerRail.depthBelowGround)) / 2;
-
-    const noticeTag = AssumedTagMarker.createTag('Gap unverified - ask authors/DMRC', 'Rails 14.70m apart in Fig 15');
-    noticeTag.position.set(7.5, midY, -15);
-    this.conflictNoticeGroup.add(noticeTag);
-  }
 }

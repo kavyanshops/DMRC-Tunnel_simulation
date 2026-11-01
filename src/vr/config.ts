@@ -21,4 +21,3 @@ export const BOUNDS = { xMin: -5.9, xMax: 5.9, zMin: -95, zMax: 95 };
 export const SNAP_TURN_DEG = 30;
 export const MAX_TELEPORT_DIST = 30;
 export const SMOOTH_SPEED = 2.0; // m/s, optional
-export const BANNER_TEXT = 'Training prototype — not approved for operational decisions.';

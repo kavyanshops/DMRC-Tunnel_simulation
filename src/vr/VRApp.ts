@@ -4,7 +4,7 @@ import { TunnelBuilder } from '../scene/TunnelBuilder';
 import { CirculationBuilder } from '../scene/CirculationBuilder';
 import { StationInterior } from '../scene/StationInterior';
 import {
-  BANNER_TEXT, BOUNDS, MAX_TELEPORT_DIST, SMOOTH_SPEED, SNAP_TURN_DEG,
+  BOUNDS, MAX_TELEPORT_DIST, SMOOTH_SPEED, SNAP_TURN_DEG,
   VR_LEVEL_IDS, VRLevelId, levelFloorY, levelName
 } from './config';
 import { applyDeadzone, clampToBounds, rayPlaneHit, rigPositionForTarget, smoothMoveDelta, snapTurnDirection } from './locomotion';
@@ -200,12 +200,10 @@ export class VRApp {
   private drawMenu() {
     const g = this.menuCtx;
     g.fillStyle = 'rgba(15,23,42,0.92)'; g.fillRect(0, 0, PANEL_W, PANEL_H);
-    g.fillStyle = '#f59e0b'; g.font = 'bold 22px system-ui'; g.fillText('Training prototype — not approved', 16, 32);
-    g.fillText('for operational decisions.', 16, 58);
-    g.fillStyle = '#e2e8f0'; g.font = 'bold 26px system-ui'; g.fillText('Level', 16, 100);
+    g.fillStyle = '#e2e8f0'; g.font = 'bold 26px system-ui'; g.fillText('Level', 16, 40);
     this.buttons = layoutLevelButtons(
-      VR_LEVEL_IDS.map((id) => ({ id: 'lvl:' + id, label: levelName(id) })), PANEL_W, 116, 64, 12);
-    this.buttons.push({ id: 'hotspots', label: 'Toggle hotspots', x: 12, y: 116 + 4 * 76 + 8, w: PANEL_W - 24, h: 64 });
+      VR_LEVEL_IDS.map((id) => ({ id: 'lvl:' + id, label: levelName(id) })), PANEL_W, 56, 64, 12);
+    this.buttons.push({ id: 'hotspots', label: 'Toggle hotspots', x: 12, y: 56 + 4 * 76 + 8, w: PANEL_W - 24, h: 64 });
     for (const b of this.buttons) {
       const active = b.id === 'lvl:' + this.level;
       g.fillStyle = active ? '#0ea5e9' : '#334155'; g.fillRect(b.x, b.y, b.w, b.h);
@@ -219,7 +217,6 @@ export class VRApp {
     const g = this.infoCtx; const w = 768, hgt = 640;
     g.fillStyle = 'rgba(15,23,42,0.95)'; g.fillRect(0, 0, w, hgt);
     let y = 40;
-    g.fillStyle = '#f59e0b'; g.font = 'bold 20px system-ui'; g.fillText(BANNER_TEXT, 16, y); y += 40;
     g.fillStyle = '#f8fafc'; g.font = 'bold 30px system-ui'; g.fillText(h.name, 16, y); y += 36;
     if (h.nameHindi) { g.fillStyle = '#7dd3fc'; g.font = '26px system-ui'; g.fillText(h.nameHindi, 16, y); y += 34; }
     g.fillStyle = '#94a3b8'; g.font = '20px system-ui'; g.fillText(`Confidence: ${h.confidence} · Source: ${h.source}`, 16, y); y += 34;

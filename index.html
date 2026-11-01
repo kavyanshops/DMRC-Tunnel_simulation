@@ -9,12 +9,6 @@
   <link rel="stylesheet" href="/src/index.css">
 </head>
 <body>
-  <!-- Permanent Safety Disclaimer Banner -->
-  <aside id="permanent-banner" role="banner" aria-label="Prototype Disclaimer">
-    <span class="badge-icon" aria-hidden="true">!</span>
-    <span>Training prototype — not approved for operational decisions.</span>
-  </aside>
-
   <div id="app">
     <!-- Top Navigation Bar -->
     <header id="top-nav">
@@ -25,9 +19,6 @@
       <nav class="nav-links" aria-label="Main Navigation">
         <button class="nav-btn active" id="btn-nav-home">Portal Home</button>
         <button class="nav-btn" id="btn-nav-overview">3D Overview (M1)</button>
-        <button class="nav-btn" id="btn-nav-library">Component Library</button>
-        <button class="nav-btn" id="btn-nav-fire">Fire Simulation</button>
-        <button class="nav-btn" id="btn-nav-flood">Flooding Simulation</button>
       </nav>
     </header>
 
@@ -140,7 +131,7 @@
         </div>
       </div>
 
-      <!-- Four Interactive Experience Tiles -->
+      <!-- Interactive Experience Tiles -->
       <nav class="hero-tiles-grid" aria-label="Training Experiences">
         <article class="hero-tile" id="tile-explore" role="button" tabindex="0">
           <div class="tile-header">
@@ -151,45 +142,6 @@
           <p class="tile-desc">Inspect the 13.4m cut-and-cover box, 5 floor slabs, stacked running tunnels and soil cutaway.</p>
           <div class="tile-footer">
             <span>Launch Overview</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </div>
-        </article>
-
-        <article class="hero-tile" id="tile-library" role="button" tabindex="0">
-          <div class="tile-header">
-            <span class="tile-icon">📑</span>
-            <span class="tile-status-pill">Codex</span>
-          </div>
-          <h2 class="tile-title">Component Library</h2>
-          <p class="tile-desc">Searchable engineering codex with verified dimensions, source citations and ASSUMED status badges.</p>
-          <div class="tile-footer">
-            <span>Browse Records</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </div>
-        </article>
-
-        <article class="hero-tile" id="tile-fire" role="button" tabindex="0">
-          <div class="tile-header">
-            <span class="tile-icon">🔥</span>
-            <span class="tile-status-pill pill-fire">Scenario 01</span>
-          </div>
-          <h2 class="tile-title">Fire Simulation</h2>
-          <p class="tile-desc">Deterministic bird's-eye scenario tracking smoke dispersion, ventilation status and zone alerts.</p>
-          <div class="tile-footer">
-            <span>Open Scenario</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </div>
-        </article>
-
-        <article class="hero-tile" id="tile-flood" role="button" tabindex="0">
-          <div class="tile-header">
-            <span class="tile-icon">💧</span>
-            <span class="tile-status-pill pill-flood">Scenario 02</span>
-          </div>
-          <h2 class="tile-title">Flooding Simulation</h2>
-          <p class="tile-desc">Bird's-eye water ingress model tracking simulated groundwater seepage, sump telemetry and egress routes.</p>
-          <div class="tile-footer">
-            <span>Open Scenario</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </div>
         </article>
@@ -206,6 +158,19 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </div>
         </article>
+
+        <a class="hero-tile" id="tile-vr" href="/vr.html">
+          <div class="tile-header">
+            <span class="tile-icon">🥽</span>
+            <span class="tile-status-pill pill-live">VR Preview</span>
+          </div>
+          <h2 class="tile-title">VR Training</h2>
+          <p class="tile-desc">Enter the immersive station preview with controller teleportation, level selection and hotspot inspection.</p>
+          <div class="tile-footer">
+            <span>Open VR Preview</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </a>
       </nav>
     </section>
   </div>

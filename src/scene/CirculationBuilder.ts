@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { depthToWorldY } from '../data/stationSpec';
-import { AssumedTagMarker } from './AssumedTagMarker';
 import { LIFT, LEVEL_Y, STAIRS, STAIR_X, stairCells, slabForLevel, type StairLayout } from '../data/stationLayout';
 
 export interface StairDefinition {
@@ -138,10 +137,6 @@ export class CirculationBuilder {
     // Overhead illuminated wayfinding sign at Concourse top landing
     this.buildStairwayOverheadSign();
 
-    // Tag stairs as ASSUMED layout
-    const tag = AssumedTagMarker.createTag('ASSUMED: STAIRWAYS', 'Circulation flight placement estimated');
-    tag.position.set(((STAIR_X.min + STAIR_X.max) / 2), depthToWorldY(10.16) + 2.5, 0);
-    this.stairsGroup.add(tag);
   }
 
   /**
@@ -391,10 +386,6 @@ export class CirculationBuilder {
 
     this.elevatorGroup.add(this.elevatorCabin);
 
-    // Floating tag
-    const liftTag = AssumedTagMarker.createTag('ASSUMED: LIFT SHAFT', 'Transit elevator location estimated');
-    liftTag.position.set(shaftX, topY + 0.5, shaftZ);
-    this.elevatorGroup.add(liftTag);
   }
 
   /**
@@ -454,9 +445,6 @@ export class CirculationBuilder {
       }
     });
 
-    const psdTag = AssumedTagMarker.createTag('ASSUMED: FULL-HEIGHT PSDs', 'Platform screen door standard design');
-    psdTag.position.set(psdX, depthToWorldY(16.31) + 3.0, 0);
-    this.psdGroup.add(psdTag);
   }
 
   /**

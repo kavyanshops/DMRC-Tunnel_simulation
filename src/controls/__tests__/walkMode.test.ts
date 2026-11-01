@@ -73,6 +73,13 @@ describe('Walk Mode - FirstPersonControls Physics & Collision', () => {
     expect(controls.computeFloorHeightAt(xOnStairs, 8)).toBeCloseTo(yBottom, 2);
   });
 
+  it('does not pull the player onto stairs when passing beside them', () => {
+    const concourseY = depthToWorldY(10.16);
+    const xBesideStairs = STAIR_X.min + 0.2;
+
+    expect(controls.computeFloorHeightAt(xBesideStairs, 0)).toBeCloseTo(concourseY, 2);
+  });
+
   it('teleports reliably via fast-travel to all verified station levels', () => {
     const levelsToTest = [
       { id: 'upper_platform', expectedDepth: 16.31 },

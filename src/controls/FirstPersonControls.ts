@@ -64,6 +64,7 @@ export class FirstPersonControls {
   // Bounds
   private readonly boundsX = { min: -5.9, max: 5.9 };
   private readonly boundsZ = { min: -95.0, max: 95.0 };
+  private readonly playerRadius = 0.35;
 
   // Elevator shaft bounds
   private readonly liftBounds = {
@@ -389,8 +390,7 @@ export class FirstPersonControls {
     if (!isOnStairs) {
       // C. Reinforced Concrete Columns Collision (Cylinders on the layout manifest grid)
       const colRadius = COLUMNS.radius;
-      const playerRadius = 0.35;
-      const minDist = colRadius + playerRadius; // 0.80m
+      const minDist = colRadius + this.playerRadius; // 0.80m
 
       for (const cz of COLUMNS.zs) {
         const dx = x - COLUMNS.x;
@@ -477,7 +477,9 @@ export class FirstPersonControls {
     // 1. Check if on any of the 3 staircases
     for (const stair of this.circulationBuilder.stairs) {
       const b = stair.bounds;
-      if (x >= b.xMin && x <= b.xMax) {
+      // Keep the stair floor from capturing a player who is only passing beside
+      // the stair opening. The center must be clear of both stair edges.
+      if (x >= b.xMin + this.playerRadius && x <= b.xMax - this.playerRadius) {
         const minZ = Math.min(b.zTop, b.zBottom);
         const maxZ = Math.max(b.zTop, b.zBottom);
         if (z >= minZ && z <= maxZ) {
