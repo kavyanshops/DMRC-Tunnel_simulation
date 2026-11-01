@@ -129,7 +129,11 @@ Primary source references:
 - [ ] **M2b: Station structure fix (branch `fix/station-structure`, IN PROGRESS: Phases A-B done, C-G pending)**
   - [x] Phase A: `src/scene/__tests__/stationIntegrity.test.ts` written first and failing on the audited defects.
   - [x] Phase B: `src/data/stationLayout.ts` is the single layout manifest (grid, stairs, lift, platform, AFC, benches, ESP, slabs). Slabs, platform decks, floor finishes, ceilings and LED runs are generated around openings **derived** from the stairs and the lift (`subtractRects`); nothing is hand-typed.
-  - [ ] Phase C: walkable zones from the manifest (walk mode + VR + minimap). Phase D: journey graph + route guide. Phase E: banners/yellow. Phase F: library records. Phase G: optimisation.
+  - [x] Phase C: manifest-derived walkable zones now drive walk-mode and VR teleport destinations and are rendered on the walk minimap.
+  - [x] Phase D: generated journey graph, intermediate-level route floor strip, and hidden-by-default guided route in walk mode (`G`) and VR wrist menu.
+  - [x] Phase E: removed walk/VR floating labels and non-functional amber helpers; merged stair nosings into one instanced mesh and retained only functional yellow safety markings.
+  - [x] Phase F: expanded the component library with generic DMRC reference facts, tagged all new records Assumed, and made progress totals derive from the records array.
+  - [x] Phase G: optimized VR component hotspots into one instanced mesh, reducing marker draw calls while preserving ray selection and visibility toggles.
 
   **Decisions (Phase B)**
   | Decision | Choice | Why |

@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { STATION_SPEC, depthToWorldY } from '../data/stationSpec';
-import { AssumedTagMarker } from './AssumedTagMarker';
 
 export class GroundBuilder {
   public group: THREE.Group;
@@ -129,9 +128,6 @@ export class GroundBuilder {
     this.sewerGroup.add(sewerMesh);
 
     // Dashed helper box around sewer
-    const dashedBox = AssumedTagMarker.createDashedBoundingBox(new THREE.Vector3(45, 3.5, 3.5), 0xf59e0b);
-    dashedBox.position.set(0, sewerY, 112);
-    this.sewerGroup.add(dashedBox);
   }
 
   /**

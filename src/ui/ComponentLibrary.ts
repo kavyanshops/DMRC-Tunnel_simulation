@@ -50,7 +50,7 @@ export class ComponentLibrary {
           <div class="comp-lib-title-group">
             <div class="comp-lib-badge">DMRC PHASE IV · ENGINEERING REPOSITORY</div>
             <h2 class="comp-lib-title">Station & Tunnel Component Library</h2>
-            <div class="comp-lib-sub">18 verified, provisional & assumed architectural, structural & safety components</div>
+            <div class="comp-lib-sub">${this.components.length} verified, provisional & assumed architectural, structural & safety components</div>
           </div>
           <button class="comp-lib-close" id="comp-lib-close-btn" title="Close Library (Esc)">&times;</button>
         </div>
@@ -59,7 +59,7 @@ export class ComponentLibrary {
         <div class="comp-lib-progress-wrap">
           <div class="comp-lib-progress-label">
             <span class="progress-title">Exploration Progress</span>
-            <span class="progress-stats" id="comp-lib-progress-text">0 / 18 Explored (0%)</span>
+            <span class="progress-stats" id="comp-lib-progress-text">0 / ${this.components.length} Explored (0%)</span>
           </div>
           <div class="comp-lib-progress-bar">
             <div class="comp-lib-progress-fill" id="comp-lib-progress-fill" style="width: 0%"></div>

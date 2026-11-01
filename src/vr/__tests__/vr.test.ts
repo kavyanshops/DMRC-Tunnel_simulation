@@ -3,6 +3,7 @@ import { applyDeadzone, clampToBounds, rayPlaneHit, rigPositionForTarget, smooth
 import { hitTest, layoutLevelButtons } from '../panelModel';
 import { loadHotspots, wrapText } from '../hotspots';
 import { VR_LEVEL_IDS, levelFloorY, BOUNDS } from '../config';
+import componentsData from '../../data/components.json';
 
 describe('VR locomotion', () => {
   it('ray hits floor ahead and below', () => {
@@ -54,7 +55,7 @@ describe('VR data', () => {
   });
   it('hotspots come from the existing library with a confidence label', () => {
     const h = loadHotspots();
-    expect(h.length).toBe(18);
+    expect(h.length).toBe(componentsData.length);
     expect(h.every((x) => ['Verified', 'Provisional', 'Assumed'].includes(x.confidence) || x.confidence)).toBe(true);
   });
   it('wraps text', () => {

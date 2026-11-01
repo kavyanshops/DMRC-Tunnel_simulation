@@ -79,6 +79,19 @@ function collect(root: THREE.Object3D): Item[] {
   root.traverse((o) => {
     const m = o as THREE.Mesh;
     if (!m.isMesh || !isVisible(m) || !m.geometry?.attributes?.position) return;
+    const instanced = o as THREE.InstancedMesh;
+    if (instanced.isInstancedMesh) {
+      m.geometry.computeBoundingBox();
+      const instance = new THREE.Matrix4();
+      const world = new THREE.Matrix4();
+      const box = m.geometry.boundingBox!;
+      for (let i = 0; i < instanced.count; i++) {
+        instanced.getMatrixAt(i, instance);
+        world.multiplyMatrices(instanced.matrixWorld, instance);
+        out.push({ mesh: instanced, box: box.clone().applyMatrix4(world), cls: classify(instanced), path: `${pathOf(instanced)} [${i}]` });
+      }
+      return;
+    }
     const box = new THREE.Box3().setFromObject(m);
     if (box.isEmpty()) return;
     out.push({ mesh: m, box, cls: classify(m), path: pathOf(m) });
