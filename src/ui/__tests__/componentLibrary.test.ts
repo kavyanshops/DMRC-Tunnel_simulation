@@ -18,7 +18,7 @@ describe('Milestone 3 - Component Library & Interaction System', () => {
   describe('1. Data Integrity & Traceability', () => {
     it('contains at least 15 engineering components (spec requires 15+)', () => {
       expect(componentsData.length).toBeGreaterThanOrEqual(15);
-      expect(lib.components.length).toBe(18);
+      expect(lib.components.length).toBe(componentsData.length);
     });
 
     it('ensures every component has complete engineering metadata and valid coordinates', () => {
@@ -53,10 +53,14 @@ describe('Milestone 3 - Component Library & Interaction System', () => {
 
   describe('2. Exploration Progression Tracking', () => {
     it('starts with 0 explored components and updates stats as components are explored', () => {
-      expect(lib.getExploredStats()).toEqual({ count: 0, total: 18, percentage: 0 });
+      expect(lib.getExploredStats()).toEqual({ count: 0, total: componentsData.length, percentage: 0 });
 
       lib.markAsExplored('comp-dwall');
-      expect(lib.getExploredStats()).toEqual({ count: 1, total: 18, percentage: 6 });
+      expect(lib.getExploredStats()).toEqual({
+        count: 1,
+        total: componentsData.length,
+        percentage: Math.round(100 / componentsData.length),
+      });
 
       // Duplicate exploration is idempotent
       lib.markAsExplored('comp-dwall');

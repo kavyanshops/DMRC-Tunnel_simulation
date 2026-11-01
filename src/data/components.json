@@ -450,5 +450,201 @@
       "Inspect door safety photo-curtain infrared sensors",
       "Verify cabin emergency intercom connectivity to Station Controller"
     ]
+  },
+  {
+    "id": "ref-dbr-design-life-fire",
+    "name": "Generic Station Design Life & Fire Resistance",
+    "nameHindi": "स्टेशन डिज़ाइन लाइफ़ और अग्नि प्रतिरोध",
+    "category": "Structural",
+    "confidence": "Assumed",
+    "source": "RDSO draft Model DBR, Jan 2022 (generic DMRC reference, not Sadar Bazar-specific)",
+    "levelId": "station_box",
+    "levelName": "Station Structural Envelope",
+    "coordinates": { "x": 2.5, "y": -5.36, "z": 42.0 },
+    "depthBelowGround": 5.36,
+    "rl": 214.64,
+    "description": "Generic reference requirements for durability and fire performance of metro station structures. These values are informational and do not replace the Sadar Bazar project specification.",
+    "specifications": {
+      "Minimum Design Life": "100 years",
+      "Station Fire Resistance": "4 hours",
+      "Ancillary Fire Resistance": "2 hours",
+      "Angular Distortion Limit": "1:2000"
+    },
+    "inspectionProtocol": [
+      "Confirm project-specific fire-resistance schedule before relying on this generic reference",
+      "Review durability and repair records against the approved design-life strategy",
+      "Verify monitoring thresholds are defined for angular distortion"
+    ]
+  },
+  {
+    "id": "ref-dbr-groundwater-flotation",
+    "name": "Generic Groundwater, Leakage & Flotation Controls",
+    "nameHindi": "भूजल रिसाव और उछाल नियंत्रण",
+    "category": "Geotechnical",
+    "confidence": "Assumed",
+    "source": "RDSO draft Model DBR, Jan 2022 (generic DMRC reference, not Sadar Bazar-specific)",
+    "levelId": "concourse",
+    "levelName": "Cut-and-Cover Waterproofing Interface",
+    "coordinates": { "x": 2.5, "y": -10.16, "z": 30.0 },
+    "depthBelowGround": 10.16,
+    "rl": 209.84,
+    "description": "Generic waterproofing and excavation-control reference for underground stations, including leakage, flotation, and external dewatering constraints.",
+    "specifications": {
+      "Groundwater Leakage Limit": "0.1 L/m²/day",
+      "Flotation Factor of Safety": "At least 1.1",
+      "Dewatering": "No dewatering outside cut-and-cover walls",
+      "Wall Preference": "Diaphragm walls preferred for deeper stations"
+    },
+    "inspectionProtocol": [
+      "Log seepage rates by area and compare with the approved project limit",
+      "Review flotation calculations for the governing groundwater condition",
+      "Confirm external groundwater levels are monitored without uncontrolled dewatering"
+    ]
+  },
+  {
+    "id": "ref-dbr-flood-openings",
+    "name": "Generic Flood-Level Protection for Openings",
+    "nameHindi": "बाढ़ स्तर से ऊपर खुले भागों की सुरक्षा",
+    "category": "Life Safety",
+    "confidence": "Assumed",
+    "source": "RDSO draft Model DBR, Jan 2022 (generic DMRC reference, not Sadar Bazar-specific)",
+    "levelId": "ground",
+    "levelName": "Surface Flood Protection",
+    "coordinates": { "x": 2.5, "y": 0.0, "z": 18.0 },
+    "depthBelowGround": 0,
+    "rl": 220,
+    "description": "Generic flood-resilience reference for station entrances, ventilation openings, and other surface penetrations.",
+    "specifications": {
+      "Opening Datum": "Above the 1-in-50-year flood level",
+      "Minimum Freeboard": "At least 1.2 m above surrounding ground"
+    },
+    "inspectionProtocol": [
+      "Verify each opening elevation against the current flood assessment",
+      "Inspect raised thresholds, covers, and drainage paths for obstructions",
+      "Record project-specific flood freeboard in the approved design register"
+    ]
+  },
+  {
+    "id": "ref-ecs-smoke-ventilation",
+    "name": "Generic ECS & Smoke Extraction Arrangement",
+    "nameHindi": "ईसीएस और धुआँ निकासी व्यवस्था",
+    "category": "Transit Systems",
+    "confidence": "Assumed",
+    "source": "ACR Journal ECS article, 2012 (generic DMRC reference, not Sadar Bazar-specific)",
+    "levelId": "intermediate",
+    "levelName": "Station Ventilation Plant Reference",
+    "coordinates": { "x": 2.5, "y": -24.46, "z": 6.0 },
+    "depthBelowGround": 24.46,
+    "rl": 195.54,
+    "description": "Generic environmental-control and smoke-management reference describing platform screen-door effects, end ventilation rooms, exhaust paths, and operating modes.",
+    "specifications": {
+      "ECS Rooms": "At both station ends",
+      "Exhaust Paths": "Under-platform exhaust and over-track exhaust",
+      "Operating Modes": "Closed, open, and smoke-extraction modes",
+      "Public Design Condition": "27 °C / 55% RH",
+      "Smoke Fan Rating": "250 °C for 1 hour",
+      "Tunnel Air Velocity": "At least 0.82 m/s",
+      "Tunnel Temperature": "Under 45 °C (NFPA 130 reference)"
+    },
+    "inspectionProtocol": [
+      "Confirm the approved ventilation zoning and smoke-mode sequence",
+      "Verify fan duty ratings and end-room access provisions",
+      "Check measured air velocity and temperature against project criteria"
+    ]
+  },
+  {
+    "id": "ref-evacuation-performance",
+    "name": "Generic Metro Evacuation Performance Criteria",
+    "nameHindi": "मेट्रो निकासी प्रदर्शन मानदंड",
+    "category": "Life Safety",
+    "confidence": "Assumed",
+    "source": "IIT Delhi evacuation paper, 2022 (generic DMRC reference, not Sadar Bazar-specific)",
+    "levelId": "concourse",
+    "levelName": "Station Egress Planning Reference",
+    "coordinates": { "x": 2.5, "y": -10.16, "z": -6.0 },
+    "depthBelowGround": 10.16,
+    "rl": 209.84,
+    "description": "Generic evacuation-planning facts for assessment and training context. They must not be interpreted as the approved Sadar Bazar evacuation calculation.",
+    "specifications": {
+      "NFPA 130 Critical Time": "240 seconds",
+      "Delhi Metro Reference Time": "330 seconds",
+      "Pre-Evacuation Time": "60 to 90 seconds",
+      "Wheelchair Speed": "0.89 to 1.19 m/s",
+      "Disabled-Population Assumption": "1.4%"
+    },
+    "inspectionProtocol": [
+      "Use the approved project evacuation model for operational decisions",
+      "Review pre-evacuation assumptions separately from travel-time calculations",
+      "Check accessible route assumptions against the final station layout"
+    ]
+  },
+  {
+    "id": "ref-generic-accessibility-egress",
+    "name": "Generic Delhi Metro Stair & Escalator Reference",
+    "nameHindi": "दिल्ली मेट्रो सीढ़ी और एस्केलेटर संदर्भ",
+    "category": "Life Safety",
+    "confidence": "Assumed",
+    "source": "IIT Delhi evacuation paper, 2022 (generic DMRC reference, not Sadar Bazar-specific)",
+    "levelId": "concourse",
+    "levelName": "Egress Design Reference",
+    "coordinates": { "x": 2.5, "y": -10.16, "z": -18.0 },
+    "depthBelowGround": 10.16,
+    "rl": 209.84,
+    "description": "Generic Delhi Metro circulation dimensions included for comparison only. The station-specific staircase width remains governed by the station specification.",
+    "specifications": {
+      "Typical Stair Width": "3.0 m generic reference",
+      "Typical Escalator Width": "1.1 m generic reference"
+    },
+    "inspectionProtocol": [
+      "Do not overwrite the Sadar Bazar staircase width with this generic value",
+      "Compare proposed circulation widths with the approved accessibility brief",
+      "Verify accessible egress continuity at every level change"
+    ]
+  },
+  {
+    "id": "ref-fe-station-mesh",
+    "name": "Generic Finite-Element Station Mesh Guidance",
+    "nameHindi": "स्टेशन फाइनाइट एलिमेंट मेष मार्गदर्शन",
+    "category": "Structural",
+    "confidence": "Assumed",
+    "source": "IJITEE finite-element paper, 2020 (generic DMRC reference, not Sadar Bazar-specific)",
+    "levelId": "station_box",
+    "levelName": "Structural Analysis Reference",
+    "coordinates": { "x": 2.5, "y": -18.46, "z": -30.0 },
+    "depthBelowGround": 18.46,
+    "rl": 201.54,
+    "description": "Generic numerical-analysis guidance for typical underground station models. It is informational and does not change the audited station geometry.",
+    "specifications": {
+      "Suggested Mesh Size": "0.5 m optimal reference",
+      "Typical Wall Thickness": "1.0 to 1.25 m generic reference",
+      "Typical Slab Thickness": "1.0 to 1.25 m generic reference"
+    },
+    "inspectionProtocol": [
+      "Document mesh sensitivity before accepting analysis results",
+      "Use the approved Sadar Bazar wall and slab schedule for model inputs",
+      "Check that generic analysis guidance is not treated as verified project data"
+    ]
+  },
+  {
+    "id": "ref-ecs-psd-cooling",
+    "name": "Generic PSD Cooling-Load Comparison",
+    "nameHindi": "पीएसडी शीतलन भार तुलना",
+    "category": "Transit Systems",
+    "confidence": "Assumed",
+    "source": "ACR Journal ECS article, 2012 (generic DMRC reference, not Sadar Bazar-specific)",
+    "levelId": "upper_platform",
+    "levelName": "Platform Environmental-Control Reference",
+    "coordinates": { "x": 2.5, "y": -16.31, "z": -42.0 },
+    "depthBelowGround": 16.31,
+    "rl": 203.69,
+    "description": "Generic comparison of platform screen-door and non-platform-screen-door environmental loads for early-stage training context.",
+    "specifications": {
+      "Non-PSD Cooling Increase": "About 50% compared with PSD stations"
+    },
+    "inspectionProtocol": [
+      "Use the approved ECS heat-load model for design decisions",
+      "Confirm PSD operating assumptions match the signalling and ventilation systems",
+      "Record the source and confidence level when using comparison values"
+    ]
   }
 ]
