@@ -1,4 +1,5 @@
-import { LIFT } from '../data/stationLayout';
+import { COLUMNS, LIFT } from '../data/stationLayout';
+import { FLOOR_ZONES, STAIR_RAMPS, levelAtY } from '../scene/walkable';
 import * as THREE from 'three';
 import type { FirstPersonControls, PlayerTelemetry } from './FirstPersonControls';
 import type { StationInteractable } from '../scene/StationInterior';
@@ -318,26 +319,28 @@ export class WalkHUD {
     ctx.lineWidth = 1.5;
     ctx.strokeRect(padX, padY, boxW, boxH);
 
-    // Trackway corridor along East side (X > 0)
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(padX, padY + boxH * 0.55, boxW, boxH * 0.45);
+    const mapX = (x: number) => padY + ((x + 6.7) / 13.4) * boxH;
+    const mapZ = (z: number) => padX + ((z + 100) / 200) * boxW;
+    const level = levelAtY(feetPos.y);
 
-    // Track rail line
-    ctx.strokeStyle = '#64748b';
-    ctx.setLineDash([4, 2]);
-    ctx.beginPath();
-    ctx.moveTo(padX, padY + boxH * 0.75);
-    ctx.lineTo(padX + boxW, padY + boxH * 0.75);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    // Walkable floor of the current level (generated from the layout manifest, not a guess)
+    ctx.fillStyle = '#1e3a5f';
+    for (const zn of FLOOR_ZONES) {
+      if (zn.level !== level) continue;
+      ctx.fillRect(mapZ(zn.rect.z0), mapX(zn.rect.x0), mapZ(zn.rect.z1) - mapZ(zn.rect.z0), mapX(zn.rect.x1) - mapX(zn.rect.x0));
+    }
+    // Stairs that start or end on this level
+    ctx.fillStyle = '#94a3b8';
+    for (const r of STAIR_RAMPS) {
+      if (r.stair.fromLevel !== level && r.stair.toLevel !== level) continue;
+      ctx.fillRect(mapZ(r.rect.z0), mapX(r.rect.x0), mapZ(r.rect.z1) - mapZ(r.rect.z0), mapX(r.rect.x1) - mapX(r.rect.x0));
+    }
 
-    // Structural columns (X = -0.5)
+    // Structural columns (layout manifest grid)
     ctx.fillStyle = '#475569';
-    for (let colZ = -80; colZ <= 80; colZ += 20) {
-      const colMapZ = padX + ((colZ + 100) / 200) * boxW;
-      const colMapX = padY + ((-0.5 + 6.7) / 13.4) * boxH;
+    for (const colZ of COLUMNS.zs) {
       ctx.beginPath();
-      ctx.arc(colMapZ, colMapX, 1.5, 0, Math.PI * 2);
+      ctx.arc(mapZ(colZ), mapX(COLUMNS.x), 1.5, 0, Math.PI * 2);
       ctx.fill();
     }
 

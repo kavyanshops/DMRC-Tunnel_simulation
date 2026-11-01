@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { STATION_SPEC, depthToWorldY, worldYToDepth, worldYToRL } from '../data/stationSpec';
 import { AFC_LINE, COLUMNS, LIFT } from '../data/stationLayout';
+import { constrainMove, levelAtY, nearestWalkable, surfaceAt } from '../scene/walkable';
 import type { CirculationBuilder } from '../scene/CirculationBuilder';
 import type { StationInterior, StationInteractable } from '../scene/StationInterior';
 
@@ -345,6 +346,12 @@ export class FirstPersonControls {
     const proposedX = this.feetPosition.x + this.velocity.x * dt;
     const proposedZ = this.feetPosition.z + this.velocity.z * dt;
 
+    // 3b. If something put us off the floor (teleport, library jump), step onto the nearest walkable point
+    if (!this.isPlayerInElevator() && !surfaceAt(this.feetPosition.x, this.feetPosition.z, this.feetPosition.y)) {
+      const n = nearestWalkable(levelAtY(this.feetPosition.y), this.feetPosition.x, this.feetPosition.z, 0.4);
+      this.feetPosition.set(n.x, n.y, n.z);
+    }
+
     // 4. Collision resolution against walls, columns, elevator, PSD, and boundaries
     const resolved = this.resolveCollisions(proposedX, proposedZ);
     this.feetPosition.x = resolved.x;
@@ -374,17 +381,8 @@ export class FirstPersonControls {
     x = Math.max(this.boundsX.min, Math.min(this.boundsX.max, x));
     z = Math.max(this.boundsZ.min, Math.min(this.boundsZ.max, z));
 
-    // B. Check if player is on stairs - stairs have precedence
-    let isOnStairs = false;
-    for (const stair of this.circulationBuilder.stairs) {
-      const b = stair.bounds;
-      const minZ = Math.min(b.zTop, b.zBottom);
-      const maxZ = Math.max(b.zTop, b.zBottom);
-      if (x >= b.xMin && x <= b.xMax && z >= minZ && z <= maxZ) {
-        isOnStairs = true;
-        break;
-      }
-    }
+    // B. Is the player actually ON a stair surface (not merely under or above one)?
+    const isOnStairs = surfaceAt(x, z, this.feetPosition.y)?.kind === 'stair';
 
     if (!isOnStairs) {
       // C. Reinforced Concrete Columns Collision (Cylinders on the layout manifest grid)
@@ -428,8 +426,10 @@ export class FirstPersonControls {
         }
       } else {
         // Player inside elevator: clamp within cabin walls
+        // Doors open and lined up with them: allow stepping out onto the lobby threshold
+        const doorOpen = this.elevatorDoorsOpen && this.elevatorDoorProgress > 0.6 && Math.abs(x - LIFT.cx) < 0.45;
         x = Math.max(LIFT.cx - 0.8, Math.min(LIFT.cx + 0.8, x));
-        z = Math.max(LIFT.cz - 0.85, Math.min(LIFT.cz + 0.85, z));
+        z = Math.max(LIFT.cz - 0.85, Math.min(LIFT.cz + (doorOpen ? 1.4 : 0.85), z));
       }
 
       // E. Platform Screen Doors (PSD) barrier on platform levels
@@ -456,6 +456,15 @@ export class FirstPersonControls {
       }
     }
 
+    // G. Never leave the walkable floor / stair surface (voids, under-stair mass, past the platform ends)
+    const lb2 = this.liftBounds;
+    const inLiftBox = x >= lb2.xMin && x <= lb2.xMax && z >= lb2.zMin && z <= lb2.zMax;
+    if (!inLiftBox) {
+      const c = constrainMove(this.feetPosition.x, this.feetPosition.z, x, z, this.feetPosition.y);
+      x = c.x;
+      z = c.z;
+    }
+
     return { x, z };
   }
 
@@ -471,43 +480,12 @@ export class FirstPersonControls {
   }
 
   /**
-   * Computes the floor Y level at coordinates (x, z)
+   * Floor Y at (x, z) for a person whose feet are at `y` (default: the player's own). Uses the walkable
+   * surfaces generated from the layout manifest: stair ramp first, then finished floor. Where there is no
+   * surface (a void) the current height is kept: there is no "nearest level" fallback any more.
    */
-  public computeFloorHeightAt(x: number, z: number): number {
-    // 1. Check if on any of the 3 staircases
-    for (const stair of this.circulationBuilder.stairs) {
-      const b = stair.bounds;
-      if (x >= b.xMin && x <= b.xMax) {
-        const minZ = Math.min(b.zTop, b.zBottom);
-        const maxZ = Math.max(b.zTop, b.zBottom);
-        if (z >= minZ && z <= maxZ) {
-          const t = (z - b.zTop) / (b.zBottom - b.zTop);
-          const clampedT = Math.max(0, Math.min(1, t));
-          return b.yTop - clampedT * (b.yTop - b.yBottom);
-        }
-      }
-    }
-
-    // 2. Otherwise snap to the nearest floor slab corresponding to current feet Y
-    const floors = [
-      { id: 'ground', y: depthToWorldY(0.0) },
-      { id: 'concourse', y: depthToWorldY(10.16) },
-      { id: 'upper_platform', y: depthToWorldY(16.31) },
-      { id: 'intermediate', y: depthToWorldY(24.46) },
-      { id: 'lower_platform', y: depthToWorldY(31.01) },
-    ];
-
-    let closest = floors[1]; // default concourse
-    let minDiff = 999;
-    for (const fl of floors) {
-      const diff = Math.abs(fl.y - this.feetPosition.y);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closest = fl;
-      }
-    }
-
-    return closest.y;
+  public computeFloorHeightAt(x: number, z: number, y: number = this.feetPosition.y): number {
+    return surfaceAt(x, z, y)?.y ?? y;
   }
 
   private updateActiveLevel() {

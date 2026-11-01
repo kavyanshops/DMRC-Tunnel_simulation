@@ -126,10 +126,11 @@ Primary source references:
   - [x] Vite production build passing with 0 errors.
   - [x] Git commit after testing.
 
-- [ ] **M2b: Station structure fix (branch `fix/station-structure`, IN PROGRESS: Phases A-B done, C-G pending)**
+- [ ] **M2b: Station structure fix (branch `fix/station-structure`, IN PROGRESS: Phases A-C done, D-G pending)**
   - [x] Phase A: `src/scene/__tests__/stationIntegrity.test.ts` written first and failing on the audited defects.
   - [x] Phase B: `src/data/stationLayout.ts` is the single layout manifest (grid, stairs, lift, platform, AFC, benches, ESP, slabs). Slabs, platform decks, floor finishes, ceilings and LED runs are generated around openings **derived** from the stairs and the lift (`subtractRects`); nothing is hand-typed.
-  - [ ] Phase C: walkable zones from the manifest (walk mode + VR + minimap). Phase D: journey graph + route guide. Phase E: banners/yellow. Phase F: library records. Phase G: optimisation.
+  - [x] Phase C: `src/scene/walkable.ts` generates `FLOOR_ZONES` + `STAIR_RAMPS` from the manifest (floor minus openings, solid under-stair mass, lift, benches). Walk mode (`computeFloorHeightAt`, collision), VR (teleport marker, menu jumps, smooth move), the minimap and "Show in 3D Model" all use it. The "nearest level" fallback and the BOUNDS rectangle are gone from those paths. `isWalkable`, `nearestWalkable`, `standInFrontOf`, `surfaceAt`, `constrainMove` have unit tests; a scripted headless walk (stairs both ways, void/under-stair/platform-end rejection, lift ride across all 4 levels) passes and was shown to fail when the constraint is removed.
+  - [ ] Phase D: journey graph + route guide. Phase E: banners/yellow. Phase F: library records. Phase G: optimisation.
 
   **Decisions (Phase B)**
   | Decision | Choice | Why |

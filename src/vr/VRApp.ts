@@ -4,10 +4,10 @@ import { TunnelBuilder } from '../scene/TunnelBuilder';
 import { CirculationBuilder } from '../scene/CirculationBuilder';
 import { StationInterior } from '../scene/StationInterior';
 import {
-  BANNER_TEXT, BOUNDS, MAX_TELEPORT_DIST, SMOOTH_SPEED, SNAP_TURN_DEG,
+  BANNER_TEXT, MAX_TELEPORT_DIST, SMOOTH_SPEED, SNAP_TURN_DEG,
   VR_LEVEL_IDS, VRLevelId, levelFloorY, levelName
 } from './config';
-import { applyDeadzone, clampToBounds, rayPlaneHit, rigPositionForTarget, smoothMoveDelta, snapTurnDirection } from './locomotion';
+import { applyDeadzone, canTeleport, moveOnFloor, rayPlaneHit, rigPositionForTarget, smoothMoveDelta, snapToWalkable, snapTurnDirection } from './locomotion';
 import { PanelButton, hitTest, layoutLevelButtons } from './panelModel';
 import { Hotspot, loadHotspots, wrapText } from './hotspots';
 import { batchStaticMeshes } from './batch';
@@ -123,7 +123,7 @@ export class VRApp {
     this.level = id;
     const head = new THREE.Vector3(); this.camera.getWorldPosition(head);
     const local = this.camera.position;
-    const p = clampToBounds({ x, y: 0, z });
+    const p = snapToWalkable(id, { x, z });
     const rp = rigPositionForTarget(p, { x: local.x, y: 0, z: local.z }, levelFloorY(id));
     this.rig.position.set(rp.x, rp.y, rp.z);
     this.refreshMenuAndInfo();
@@ -132,7 +132,8 @@ export class VRApp {
   private headWorld() { const v = new THREE.Vector3(); this.camera.getWorldPosition(v); return v; }
 
   teleportTo(p: THREE.Vector3) {
-    const c = clampToBounds({ x: p.x, y: 0, z: p.z });
+    if (!canTeleport(this.level, { x: p.x, z: p.z })) return; // void, under a low stair, or past the platform end
+    const c = snapToWalkable(this.level, { x: p.x, z: p.z });
     const local = this.camera.position;
     const rp = rigPositionForTarget(c, { x: local.x, y: 0, z: local.z }, levelFloorY(this.level));
     this.rig.position.set(rp.x, rp.y, rp.z);
@@ -251,7 +252,7 @@ export class VRApp {
       ? this.pointer(this.controllers.find((c) => c.userData.handedness === 'right') ?? this.controllers[1])
       : { origin: this.headWorld(), dir: new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.getWorldQuaternion(new THREE.Quaternion())) };
     const hit = rayPlaneHit(ptr.origin, ptr.dir, levelFloorY(this.level), MAX_TELEPORT_DIST);
-    if (hit && hit.x >= BOUNDS.xMin && hit.x <= BOUNDS.xMax && hit.z >= BOUNDS.zMin && hit.z <= BOUNDS.zMax) {
+    if (hit && canTeleport(this.level, hit)) {
       this.markerValid = true; this.markerPos.set(hit.x, hit.y, hit.z);
       this.marker.position.copy(this.markerPos).y += 0.02;
     }
@@ -301,7 +302,7 @@ export class VRApp {
     const sy = (this.keys.has('KeyS') ? 1 : 0) - (this.keys.has('KeyW') ? 1 : 0);
     if (sx || sy) {
       const [dx, dz] = smoothMoveDelta(sx, sy, this.yaw, SMOOTH_SPEED * 2, dt);
-      const p = clampToBounds({ x: this.rig.position.x + dx, y: 0, z: this.rig.position.z + dz });
+      const p = moveOnFloor(this.level, { x: this.rig.position.x, z: this.rig.position.z }, { x: this.rig.position.x + dx, z: this.rig.position.z + dz });
       this.rig.position.x = p.x; this.rig.position.z = p.z;
     }
   }
