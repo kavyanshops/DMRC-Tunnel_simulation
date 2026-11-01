@@ -12,6 +12,7 @@ import { PanelButton, hitTest, layoutLevelButtons } from './panelModel';
 import { Hotspot, loadHotspots, wrapText } from './hotspots';
 import { batchStaticMeshes } from './batch';
 import { journeyGuidePoints } from '../navigation/journeyGraph';
+import { nearestWalkablePoint } from '../navigation/walkableZones';
 
 const PANEL_W = 512, PANEL_H = 640;
 
@@ -134,7 +135,8 @@ export class VRApp {
     this.level = id;
     const head = new THREE.Vector3(); this.camera.getWorldPosition(head);
     const local = this.camera.position;
-    const p = clampToBounds({ x, y: 0, z });
+    const point = nearestWalkablePoint(id, x, z);
+    const p = clampToBounds({ x: point.x, y: 0, z: point.z });
     const rp = rigPositionForTarget(p, { x: local.x, y: 0, z: local.z }, levelFloorY(id));
     this.rig.position.set(rp.x, rp.y, rp.z);
     this.refreshMenuAndInfo();
@@ -143,7 +145,8 @@ export class VRApp {
   private headWorld() { const v = new THREE.Vector3(); this.camera.getWorldPosition(v); return v; }
 
   teleportTo(p: THREE.Vector3) {
-    const c = clampToBounds({ x: p.x, y: 0, z: p.z });
+    const point = nearestWalkablePoint(this.level, p.x, p.z);
+    const c = clampToBounds({ x: point.x, y: 0, z: point.z });
     const local = this.camera.position;
     const rp = rigPositionForTarget(c, { x: local.x, y: 0, z: local.z }, levelFloorY(this.level));
     this.rig.position.set(rp.x, rp.y, rp.z);

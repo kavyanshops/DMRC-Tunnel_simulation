@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { STATION_SPEC, depthToWorldY, worldYToDepth, worldYToRL } from '../data/stationSpec';
 import { AFC_LINE, COLUMNS, LIFT } from '../data/stationLayout';
+import { nearestWalkablePoint } from '../navigation/walkableZones';
 import type { CirculationBuilder } from '../scene/CirculationBuilder';
 import type { StationInterior, StationInteractable } from '../scene/StationInterior';
 
@@ -268,6 +269,11 @@ export class FirstPersonControls {
         break;
     }
 
+    if (levelId !== 'ground') {
+      const point = nearestWalkablePoint(levelId as 'concourse' | 'upper_platform' | 'intermediate' | 'lower_platform', x, z);
+      x = point.x;
+      z = point.z;
+    }
     this.feetPosition.set(x, y, z);
     this.velocity.set(0, 0, 0);
     this.yaw = newYaw;

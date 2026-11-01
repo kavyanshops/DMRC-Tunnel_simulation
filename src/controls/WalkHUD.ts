@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import type { FirstPersonControls, PlayerTelemetry } from './FirstPersonControls';
 import type { StationInteractable } from '../scene/StationInterior';
 import type { ComponentLibrary } from '../ui/ComponentLibrary';
+import { walkableRects } from '../navigation/walkableZones';
 
 export class WalkHUD {
   public root: HTMLElement;
@@ -318,6 +319,18 @@ export class WalkHUD {
     ctx.strokeStyle = '#38bdf8';
     ctx.lineWidth = 1.5;
     ctx.strokeRect(padX, padY, boxW, boxH);
+
+    const level = this.controls.activeLevelId;
+    if (level !== 'ground') {
+      ctx.fillStyle = 'rgba(34, 211, 238, 0.12)';
+      for (const rect of walkableRects(level as 'concourse' | 'upper_platform' | 'intermediate' | 'lower_platform')) {
+        const x = padY + ((rect.x0 + 6.7) / 13.4) * boxH;
+        const y = ((rect.x1 - rect.x0) / 13.4) * boxH;
+        const z = padX + ((rect.z0 + 100) / 200) * boxW;
+        const w = ((rect.z1 - rect.z0) / 200) * boxW;
+        ctx.fillRect(z, x, w, y);
+      }
+    }
 
     // Trackway corridor along East side (X > 0)
     ctx.fillStyle = '#1e293b';
