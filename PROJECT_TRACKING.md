@@ -133,7 +133,7 @@ Primary source references:
   - [x] Phase D: generated journey graph, intermediate-level route floor strip, and hidden-by-default guided route in walk mode (`G`) and VR wrist menu.
   - [x] Phase E: removed walk/VR floating labels and non-functional amber helpers; merged stair nosings into one instanced mesh and retained only functional yellow safety markings.
   - [x] Phase F: expanded the component library with generic DMRC reference facts, tagged all new records Assumed, and made progress totals derive from the records array.
-  - [ ] Phase G: optimisation.
+  - [x] Phase G: optimized VR component hotspots into one instanced mesh, reducing marker draw calls while preserving ray selection and visibility toggles.
 
   **Decisions (Phase B)**
   | Decision | Choice | Why |

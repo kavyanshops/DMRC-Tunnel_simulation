@@ -23,7 +23,7 @@ export class VRApp {
   level: VRLevelId = 'concourse';
 
   private hotspots: Hotspot[] = loadHotspots();
-  private hotspotMeshes: THREE.Mesh[] = [];
+  private hotspotMeshes: THREE.Object3D[] = [];
   private selected: Hotspot | null = null;
   private marker: THREE.Mesh;
   private markerValid = false;
@@ -113,13 +113,20 @@ export class VRApp {
 
   private buildHotspots() {
     const geo = new THREE.SphereGeometry(0.12, 12, 8);
-    for (const h of this.hotspots) {
-      const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0xfacc15, fog: false }));
-      mesh.position.set(...h.position);
-      mesh.userData.hotspot = h;
-      this.scene.add(mesh);
-      this.hotspotMeshes.push(mesh);
+    const mesh = new THREE.InstancedMesh(
+      geo,
+      new THREE.MeshBasicMaterial({ color: 0xfacc15, fog: false }),
+      this.hotspots.length
+    );
+    const matrix = new THREE.Matrix4();
+    for (const [index, h] of this.hotspots.entries()) {
+      matrix.makeTranslation(...h.position);
+      mesh.setMatrixAt(index, matrix);
     }
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.userData.hotspots = this.hotspots;
+    this.scene.add(mesh);
+    this.hotspotMeshes.push(mesh);
   }
 
   // ---- level / movement ----
@@ -189,7 +196,11 @@ export class VRApp {
       return;
     }
     const hh = this.raycaster.intersectObjects(this.hotspotMeshes, false)[0];
-    if (hh) { this.showInfo(hh.object.userData.hotspot as Hotspot); return; }
+    if (hh && hh.instanceId !== undefined) {
+      const hotspots = hh.object.userData.hotspots as Hotspot[];
+      this.showInfo(hotspots[hh.instanceId]);
+      return;
+    }
     if (this.markerValid) this.teleportTo(this.markerPos);
   }
 
